@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "QgbcwVm0aWDOg5bl/cSkAkhliFkPVgcw37b0ToRD2uw=",
+  "Source": "HTTPServer",
+  "BasePath": "_content/HTTPServer",
+  "Mode": "Default",
+  "ManifestType": "Publish",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
