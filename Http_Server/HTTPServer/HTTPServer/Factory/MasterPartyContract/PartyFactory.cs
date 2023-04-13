@@ -1,11 +1,12 @@
-﻿using Aquazania.Telephony.Integration.Models;
+﻿using Aquazania.Integration.ServerApp.Factory.MasterPartyContract.Impl;
+using Aquazania.Telephony.Integration.Models;
 using HTTPServer.Factory.MasterPartyContract.Impl;
 
 namespace HTTPServer.Factory.MasterPartyContract
 {
     public class PartyFactory
     {
-        enum PartyTypes { Contract, Customer, DeliveryAddress, Supplier, User, Contact }
+        enum PartyTypes { Contract, Customer, DeliveryAddress, Supplier, User, Contact, Consumables }
 
         public static IPartyConvertor Create(ChangedPartyContactContract party)
         {
@@ -33,6 +34,8 @@ namespace HTTPServer.Factory.MasterPartyContract
                     return new UserParty(configuration);
                 case PartyTypes.Contact:
                     return new ContactParty(configuration);
+                case PartyTypes.Consumables:
+                    return new ConsumableParty(configuration);
                 default:
                     throw new NotSupportedException($"Party type {partyType} is not supported.");
             }
