@@ -1,6 +1,7 @@
 ﻿using Aquazania.Telephony.Integration.Models;
 using HTTPServer.Factory.MasterLinkedPartyContract;
 using System.Data.Odbc;
+using System.Diagnostics.Eventing.Reader;
 
 namespace Aquazania.Integration.ServerApp.Factory.MasterLinkedPartyContract.Impl
 {
@@ -34,6 +35,11 @@ namespace Aquazania.Integration.ServerApp.Factory.MasterLinkedPartyContract.Impl
 
         public int DoInsert(ChangedLinkedContactContract party, int updatetype = 1)
         {
+            int refenceTypeID = 0;
+            if (updatetype == 1)
+                refenceTypeID = 14;
+            else
+                refenceTypeID = 16;
             using (var connection = new OdbcConnection(_COM_connectionString))
             {
                 try
@@ -43,7 +49,7 @@ namespace Aquazania.Integration.ServerApp.Factory.MasterLinkedPartyContract.Impl
                                + "DECLARE @ExternalReferenceID INT "
                                + "SELECT @ExternalReferenceID = MAX(DocumentReferenceID) "
                                + "FROM DocumentReference "
-                               + "WHERE DocumentReferenceTypeID = 14 AND "
+                               + "WHERE DocumentReferenceTypeID = " + refenceTypeID + " AND "
                                + "      DocumentReferenceCode = '" + party.ParentPartyCode + "' "
                                //Insert into Contact Table
                                + "INSERT INTO [Contact] ([ContactName] "
@@ -110,6 +116,11 @@ namespace Aquazania.Integration.ServerApp.Factory.MasterLinkedPartyContract.Impl
 
         public int UpdateRequired(ChangedLinkedContactContract party, int updatetype = 1)
         {
+            int refenceTypeID = 0;
+            if (updatetype == 1)
+                refenceTypeID = 14;
+            else
+                refenceTypeID = 16;
             using (var connectionCommunicator = new OdbcConnection(_COM_connectionString))
             {
                 try
@@ -128,7 +139,7 @@ namespace Aquazania.Integration.ServerApp.Factory.MasterLinkedPartyContract.Impl
                                + "		cpt.ContactPointTypeID = v.ContactPointTypeID "
                                + "	INNER JOIN	DocumentReference dr ON "
                                + "		v.ExternalReferenceID = dr.DocumentReferenceID AND "
-                               + "		dr.DocumentReferenceTypeID = 14 AND "
+                               + "		dr.DocumentReferenceTypeID = " + refenceTypeID + " AND "
                                + $"		dr.DocumentReferenceCode = '{party.ParentPartyCode}' "
                                + "WHERE v.ContactPointTypeID = isnull(2, v.ContactPointTypeID) "
                                + "GROUP BY v.ContactPointValue, "
@@ -159,11 +170,11 @@ namespace Aquazania.Integration.ServerApp.Factory.MasterLinkedPartyContract.Impl
                                     return PerformUpdate(party, System.Convert.ToInt32(readerContacts["ContactID"].ToString()));
                             }
                         }
-                        return DoInsert(party);
+                        return DoInsert(party, updatetype);
                     }
                     else
                     {
-                        return DoInsert(party);
+                        return DoInsert(party, updatetype);
                     }
                 }
                 catch (OdbcException ex)
