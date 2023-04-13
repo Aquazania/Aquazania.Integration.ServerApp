@@ -25,12 +25,6 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
             }
             return rows;
         }
-
-        public void EnterHistoryRecord(string updatedField, string oldValue, string newValue, string accountNo)
-        {
-            throw new NotImplementedException();
-        }
-
         public int PerformUpdate(string updatedField, string oldValue, string newValue, ChangedPartyContactContract party)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
@@ -59,7 +53,7 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
                 {
                     int rows = 0;
                     connection.Open();
-                    string sql = "SELECT * FROM [Customer] WHERE [Account No] = '" + party.PartyCode + "'";
+                    string sql = "SELECT * FROM [User] WHERE [User Name] = '" + party.PartyCode + "'";
                     var command = new OdbcCommand(sql, connection);
                     var reader = command.ExecuteReader();
                     while (reader.Read())

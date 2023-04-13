@@ -1,6 +1,7 @@
 ﻿using Aquazania.Telephony.Integration.Models;
 using Microsoft.Extensions.Configuration;
 using System.Data.Odbc;
+using System.IO;
 
 namespace HTTPServer.Factory.MasterPartyContract.Impl
 {
@@ -34,7 +35,11 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
                 try
                 {
                     connection.Open();
-                    string sql = "SELECT [Delivery Address Code] FROM [Delivery Address] WHERE [Delivery Address Code] = '" + party.PartyCode + "'";
+                    string sql = "";
+                    if (party.ParentPartyType == "Supplier")
+                        sql = "SELECT [Delivery Address Code] FROM [Supplier Delivery Address] WHERE [Delivery Address Code] = '" + party.PartyCode + "'";
+                    else
+                        sql = "SELECT [Delivery Address Code] FROM [Delivery Address] WHERE [Delivery Address Code] = '" + party.PartyCode + "'";
                     var command = new OdbcCommand(sql, connection);
                     var reader = command.ExecuteReader();
                     if (reader.HasRows)
@@ -61,7 +66,11 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
                 {
                     int rows = 0;
                     connection.Open();
-                    string sql = "SELECT * FROM [Delivery Address] WHERE [Delivery Address Code] = '" + party.PartyCode + "'";
+                    string sql = "";
+                    if (party.ParentPartyType == "Supplier")
+                        sql = "SELECT * FROM [Supplier Delivery Address] WHERE [Delivery Address Code] = '" + party.PartyCode + "'";
+                    else
+                        sql = "SELECT * FROM [Delivery Address] WHERE [Delivery Address Code] = '" + party.PartyCode + "'";
                     var command = new OdbcCommand(sql, connection);
                     var reader = command.ExecuteReader();
                     while (reader.Read())
@@ -93,16 +102,26 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
 
         public int PerformUpdate(string updatedField, string oldValue, string newValue, ChangedPartyContactContract party)
         {
-            EnterHistoryRecord(updatedField, oldValue, newValue, party.PartyCode);
-
             using (var connection = new OdbcConnection(_DTS_connectionString))
             {
                 try
                 {
                     connection.Open();
-                    string sql = "UPDATE [Delivery Address] "
-                               + "	SET [" + updatedField + "] = '" + newValue + "' "
-                               + "WHERE [Delivery Address Code] = '" + party.PartyCode + "'";
+                    string sql = "";
+                    if (party.ParentPartyType == "Supplier")
+                    {
+                        EnterHistoryRecord(updatedField, oldValue, newValue, party.PartyCode, 44, "Supplier Delivery Address");
+                        sql = "UPDATE [Supplier Delivery Address] "
+                            + "	SET [" + updatedField + "] = '" + newValue + "' "
+                            + "WHERE [Delivery Address Code] = '" + party.PartyCode + "'";
+                    }
+                    else
+                    {
+                        EnterHistoryRecord(updatedField, oldValue, newValue, party.PartyCode, 14, "Delivery Address");
+                        sql = "UPDATE [Delivery Address] "
+                            + "	SET [" + updatedField + "] = '" + newValue + "' "
+                            + "WHERE [Delivery Address Code] = '" + party.PartyCode + "'";
+                    }
                     var command = new OdbcCommand(sql, connection);
                     return command.ExecuteNonQuery();
                 }
@@ -113,7 +132,7 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
             }
         }
 
-        public void EnterHistoryRecord(string updatedField, string oldValue, string newValue, string deliveryAddressCode)
+        public void EnterHistoryRecord(string updatedField, string oldValue, string newValue, string deliveryAddressCode, int referenceType, string tableName)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
             {
@@ -128,7 +147,7 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
                                + "							   ,[Date Stamp]) "
                                + "SELECT 'Dariel', "
                                + "	     NULL, "
-                               + "	     14, "
+                               + "	     " + referenceType + ", "
                                + "	     '" + deliveryAddressCode + "', "
                                + "	     '" + DateTime.Now + "' "
                                + "SELECT @UpdateNo = SCOPE_IDENTITY() "
@@ -140,7 +159,7 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
                                + "SELECT '" + updatedField + "', "
                                + "	     '" + newValue + "', "
                                + "	     '" + oldValue + "', "
-                               + "	     'Delivery Address', "
+                               + "	     '" + tableName + "', "
                                + "	     @UpdateNo ";
                     var command = new OdbcCommand(sql, connection);
                     command.ExecuteNonQuery();
