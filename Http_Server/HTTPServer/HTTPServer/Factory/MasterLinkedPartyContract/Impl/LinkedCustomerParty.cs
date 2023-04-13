@@ -17,7 +17,7 @@ namespace HTTPServer.Factory.MasterLinkedPartyContract.Impl
         public int Convert(ChangedLinkedContactContract party)
         {
             int rows = 0;
-            if (ValidateParty(party))
+            if (ValidateParty(party) == 1)
             {
                 rows += UpdateRequired(party);
             }
@@ -28,7 +28,7 @@ namespace HTTPServer.Factory.MasterLinkedPartyContract.Impl
             return rows;
         }
 
-        public int DoInsert(ChangedLinkedContactContract party)
+        public int DoInsert(ChangedLinkedContactContract party, int updatetype = 1)
         {
             using (var connection = new OdbcConnection(_COM_connectionString))
             {
@@ -82,7 +82,6 @@ namespace HTTPServer.Factory.MasterLinkedPartyContract.Impl
                     throw ex;
                 }
             }
-
         }
 
         public int PerformUpdate(ChangedLinkedContactContract party, int ContactID)
@@ -103,12 +102,10 @@ namespace HTTPServer.Factory.MasterLinkedPartyContract.Impl
                     throw ex;
                 }
             }
-
         }
 
-        public int UpdateRequired(ChangedLinkedContactContract party)
+        public int UpdateRequired(ChangedLinkedContactContract party, int updatetype = 1)
         {
-            var contactNumbers = new List<Dictionary<string, object>>();
             using (var connectionCommunicator = new OdbcConnection(_COM_connectionString))
             {
                 try
@@ -174,7 +171,7 @@ namespace HTTPServer.Factory.MasterLinkedPartyContract.Impl
             }
         }
 
-        public bool ValidateParty(ChangedLinkedContactContract party)
+        public int ValidateParty(ChangedLinkedContactContract party)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
             {
@@ -199,7 +196,7 @@ namespace HTTPServer.Factory.MasterLinkedPartyContract.Impl
                                 var reader_COM = command_COM.ExecuteReader();
                                 if (reader_COM.HasRows)
                                 {
-                                    return true;
+                                    return 1;
                                 }
                                 else
                                 {
@@ -213,7 +210,7 @@ namespace HTTPServer.Factory.MasterLinkedPartyContract.Impl
                                             + "	      NULL ";
                                     var command_COM1 = new OdbcCommand(sql_COM, connection_COM);
                                     int rows = command_COM1.ExecuteNonQuery();
-                                    return true;
+                                    return 1;
                                 }
                             }
                             catch (OdbcException ex)
@@ -224,7 +221,7 @@ namespace HTTPServer.Factory.MasterLinkedPartyContract.Impl
                     }
                     else
                     {
-                        return false;
+                        return 3;
                     }
                 }
                 catch (OdbcException ex)
