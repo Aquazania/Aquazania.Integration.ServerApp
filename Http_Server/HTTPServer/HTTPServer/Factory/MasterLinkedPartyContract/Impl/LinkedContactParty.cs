@@ -1,23 +1,25 @@
 ﻿using Aquazania.Telephony.Integration.Models;
+using HTTPServer.Factory.MasterLinkedPartyContract;
 
-namespace HTTPServer.Factory.MasterLinkedPartyContract.Impl
+namespace Aquazania.Integration.ServerApp.Factory.MasterLinkedPartyContract.Impl
 {
-    public class LinkedContractParty : ILinkedPartyConvertor
+    public class LinkedContactParty : ILinkedPartyConvertor
     {
         private string _COM_connectionString;
         private string _DTS_connectionString;
-        public LinkedContractParty(IConfiguration configuration)
+        public LinkedContactParty(IConfiguration configuration)
         {
             _COM_connectionString = configuration.GetConnectionString("Communicator_Connection");
             _DTS_connectionString = configuration.GetConnectionString("DTS_Connection");
         }
+
         public int Convert(ChangedLinkedContactContract party)
         {
             throw new NotImplementedException();
         }
 
         public int DoInsert(ChangedLinkedContactContract party)
-        {   
+        {
             throw new NotImplementedException();
         }
 

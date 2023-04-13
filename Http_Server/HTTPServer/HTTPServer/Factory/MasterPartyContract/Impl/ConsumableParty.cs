@@ -34,7 +34,7 @@ namespace Aquazania.Integration.ServerApp.Factory.MasterPartyContract.Impl
                 try
                 {
                     connection.Open();
-                    string sql = "UPDATE [Customer] "
+                    string sql = "UPDATE [Consumables] "
                                + "	SET [" + updatedField + "] = '" + newValue + "' "
                                + "WHERE [Account No] = '" + party.PartyCode + "'";
                     var command = new OdbcCommand(sql, connection);

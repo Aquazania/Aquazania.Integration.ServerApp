@@ -2,6 +2,7 @@
 using HTTPServer.Factory.MasterPartyContract.Impl;
 using HTTPServer.Factory.MasterPartyContract;
 using HTTPServer.Factory.MasterLinkedPartyContract.Impl;
+using Aquazania.Integration.ServerApp.Factory.MasterLinkedPartyContract.Impl;
 
 namespace HTTPServer.Factory.MasterLinkedPartyContract
 {
@@ -25,6 +26,16 @@ namespace HTTPServer.Factory.MasterLinkedPartyContract
             {
                 case PartyTypes.Customer:
                     return new LinkedCustomerParty(configuration);
+                case PartyTypes.Contact:
+                    return new LinkedContactParty(configuration);
+                case PartyTypes.Contract:
+                    return new LinkedContractParty(configuration);
+                case PartyTypes.DeliveryAddress:
+                    return new LinkedDeliveryAddressParty(configuration);
+                case PartyTypes.Supplier:  
+                    return new LinkedSupplierParty(configuration);
+                case PartyTypes.User: 
+                    return new LinkedUserParty(configuration);
                 default:
                     throw new NotSupportedException($"Party type {partyType} is not supported.");
             }
