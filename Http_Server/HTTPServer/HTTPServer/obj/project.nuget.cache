@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "0Ll3yRbT6wKCcB5P1SoqlI9pl1Onfu0RX+QJrCUIYarTERpzH42lmO9UwOyHbYLFNTcU3eQI6TH9p7/CSsNDJA==",
+  "dgSpecHash": "PtgBPxyx7/YJduFRE7fX6BJTIvg8rCagQMawGwCiLJI1BJzSwHzTBM4RfDSo8LGgD2raLi20+2GP/GgdK8hG3w==",
   "success": true,
-  "projectFilePath": "C:\\Http_Server\\HTTPServer\\HTTPServer\\HTTPServer.csproj",
+  "projectFilePath": "C:\\RESTful_SCC\\Aquazania.Integration.ServerApp\\Http_Server\\HTTPServer\\HTTPServer\\Aquazania.Integration.ServerApp.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\WadeF\\.nuget\\packages\\microsoft.aspnet.webapi.client\\5.2.9\\microsoft.aspnet.webapi.client.5.2.9.nupkg.sha512",
     "C:\\Users\\WadeF\\.nuget\\packages\\microsoft.aspnet.webapi.core\\5.2.9\\microsoft.aspnet.webapi.core.5.2.9.nupkg.sha512",

@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33516.290
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HTTPServer", "HTTPServer\HTTPServer.csproj", "{97415A92-FC32-4A86-AD88-08CED4E72F63}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Aquazania.Integration.ServerApp", "HTTPServer\Aquazania.Integration.ServerApp.csproj", "{97415A92-FC32-4A86-AD88-08CED4E72F63}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

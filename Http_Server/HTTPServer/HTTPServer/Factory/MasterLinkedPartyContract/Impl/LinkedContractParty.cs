@@ -10,7 +10,7 @@ namespace HTTPServer.Factory.MasterLinkedPartyContract.Impl
         }
 
         public int DoInsert(ChangedLinkedContactContract party)
-        {
+        {   
             throw new NotImplementedException();
         }
 

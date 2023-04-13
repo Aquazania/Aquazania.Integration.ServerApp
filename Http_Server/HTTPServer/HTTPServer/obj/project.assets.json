@@ -6161,11 +6161,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Http_Server\\HTTPServer\\HTTPServer\\HTTPServer.csproj",
-      "projectName": "HTTPServer",
-      "projectPath": "C:\\Http_Server\\HTTPServer\\HTTPServer\\HTTPServer.csproj",
+      "projectUniqueName": "C:\\RESTful_SCC\\Aquazania.Integration.ServerApp\\Http_Server\\HTTPServer\\HTTPServer\\Aquazania.Integration.ServerApp.csproj",
+      "projectName": "Aquazania.Integration.ServerApp",
+      "projectPath": "C:\\RESTful_SCC\\Aquazania.Integration.ServerApp\\Http_Server\\HTTPServer\\HTTPServer\\Aquazania.Integration.ServerApp.csproj",
       "packagesPath": "C:\\Users\\WadeF\\.nuget\\packages\\",
-      "outputPath": "C:\\Http_Server\\HTTPServer\\HTTPServer\\obj\\",
+      "outputPath": "C:\\RESTful_SCC\\Aquazania.Integration.ServerApp\\Http_Server\\HTTPServer\\HTTPServer\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\WadeF\\AppData\\Roaming\\NuGet\\NuGet.Config",
