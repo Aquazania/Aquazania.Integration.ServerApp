@@ -11,7 +11,6 @@ namespace HTTPServer.Client
         {
             _httpClient = httpClient;
         }
-
         public async Task<HttpResponseMessage> SendAsync(object data, string url)
         {
             string payload = JsonConvert.SerializeObject(data);
@@ -21,7 +20,6 @@ namespace HTTPServer.Client
             {
                 Content = content
             };
-
             return await _httpClient.SendAsync(message).ConfigureAwait(false);
 
         }

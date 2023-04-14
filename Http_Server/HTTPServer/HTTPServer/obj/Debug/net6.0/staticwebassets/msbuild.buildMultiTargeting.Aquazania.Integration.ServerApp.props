@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\Aquazania.Integration.ServerApp.props" />
+</Project>
