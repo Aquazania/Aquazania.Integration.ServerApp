@@ -6,22 +6,22 @@ namespace Aquazania.Integration.ServerApp.Client.DeliveryAddress
 {
     public class MasterDeliveryAddressLinkedParty
     {
-        public async void SendMasterCustomerLinkedParty(ITimed_Client _httpClient, string _COM_connectionString)
+        public async void SendMasterDeliveryAddressLinkedParty(ITimed_Client _httpClient, string _COM_connectionString)
         {
             var url = "https://aquazania-telephony-in-func-demo.azurewebsites.net/api/AddParties";
-            var data = buildMasterCustomerLinkObject(_COM_connectionString);
+            var data = buildMasterDeliveryAddressLinkObject(_COM_connectionString);
             if (data.Count > 0)
             {
                 var response = await _httpClient.SendAsync(data, url);
 
                 if (response.IsSuccessStatusCode)
                 {
-                    UpdateSyncCustomerLinkMasterTable(_COM_connectionString);
+                    UpdateSyncDeliveryAddressLinkMasterTable(_COM_connectionString);
                 }
             }
         }
 
-        private void UpdateSyncCustomerLinkMasterTable(string _COM_connectionString)
+        private void UpdateSyncDeliveryAddressLinkMasterTable(string _COM_connectionString)
         {
             using (var connection = new OdbcConnection(_COM_connectionString))
             {
@@ -30,11 +30,11 @@ namespace Aquazania.Integration.ServerApp.Client.DeliveryAddress
                     connection.Open();
                     string sql = "UPDATE [Temp Master Party Contract] "
                                + "	SET [Synced] = 1 "
-                               + "WHERE PartyType = 'Customer' AND "
+                               + "WHERE PartyType = 'DeliveryAddress' AND "
                                + "	  PartyCode IN (SELECT PartyCode "
                                + "					FROM [Temp Master Party Contract] "
                                + "					WHERE [Synced] = 0 AND "
-                               + "						  [PartyType] = 'Customer' "
+                               + "						  [PartyType] = 'DeliveryAddress' "
                                + "					GROUP BY PartyCode) ";
                     var command = new OdbcCommand(sql, connection);
                     int rows = command.ExecuteNonQuery();
@@ -45,9 +45,9 @@ namespace Aquazania.Integration.ServerApp.Client.DeliveryAddress
                 }
             }
         }
-        private List<MasterOwnedLinkedContactContract> buildMasterCustomerLinkObject(string _COM_connectionString)
+        private List<MasterOwnedLinkedContactContract> buildMasterDeliveryAddressLinkObject(string _COM_connectionString)
         {
-            List<MasterOwnedLinkedContactContract> customerUpdates = new List<MasterOwnedLinkedContactContract>();
+            List<MasterOwnedLinkedContactContract> DeliveryAddressUpdates = new List<MasterOwnedLinkedContactContract>();
             using (var connection = new OdbcConnection(_COM_connectionString))
             {
                 try
@@ -56,7 +56,7 @@ namespace Aquazania.Integration.ServerApp.Client.DeliveryAddress
                     string sql = "SELECT PartyCode "
                                + "FROM [Temp Master Party Contract] "
                                + "WHERE [Synced] = 0 AND "
-                               + "	    [PartyType] = 'Customer' "
+                               + "	    [PartyType] = 'DeliveryAddress' "
                                + "GROUP BY PartyCode ";
                     var command = new OdbcCommand(sql, connection);
                     var reader = command.ExecuteReader();
@@ -74,13 +74,13 @@ namespace Aquazania.Integration.ServerApp.Client.DeliveryAddress
                                     var readerAcc = commandAcc.ExecuteReader();
                                     while (readerAcc.Read())
                                     {
-                                        MasterOwnedLinkedContactContract customer = new MasterOwnedLinkedContactContract();
-                                        customer.ParentPartyCode = readerAcc["DocumentReferenceCode"].ToString();
-                                        customer.ParentPartyType = "Customer";
-                                        customer.ContactFullName = readerAcc["ContactName"].ToString() + " " + (!readerAcc.IsDBNull(readerAcc.GetOrdinal("ContactLastName")) ? readerAcc["ContactLastName"].ToString() : "");
-                                        customer.PhoneNumber = readerAcc["ContactPointValue"].ToString();
-                                        customer.IsActive = true;
-                                        customerUpdates.Add(customer);
+                                        MasterOwnedLinkedContactContract DeliveryAddress = new MasterOwnedLinkedContactContract();
+                                        DeliveryAddress.ParentPartyCode = readerAcc["DocumentReferenceCode"].ToString();
+                                        DeliveryAddress.ParentPartyType = "DeliveryAddress";
+                                        DeliveryAddress.ContactFullName = readerAcc["ContactName"].ToString() + " " + (!readerAcc.IsDBNull(readerAcc.GetOrdinal("ContactLastName")) ? readerAcc["ContactLastName"].ToString() : "");
+                                        DeliveryAddress.PhoneNumber = readerAcc["ContactPointValue"].ToString();
+                                        DeliveryAddress.IsActive = true;
+                                        DeliveryAddressUpdates.Add(DeliveryAddress);
                                     }
                                 }
                                 catch (OdbcException ex)
@@ -89,7 +89,7 @@ namespace Aquazania.Integration.ServerApp.Client.DeliveryAddress
                                 }
                             }
                         }
-                        return customerUpdates;
+                        return DeliveryAddressUpdates;
                     }
                     else
                     {

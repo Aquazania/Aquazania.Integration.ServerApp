@@ -2,9 +2,9 @@
 using HTTPServer.Client;
 using System.Data.Odbc;
 
-namespace Aquazania.Integration.ServerApp.Client.DeliveryAddress
+namespace Aquazania.Integration.ServerApp.Client.SupplierDeliveryAddress
 {
-    public class MasterDeliveryAddressParty
+    public class MasterSupplierDeliveryAddressParty
     {
         public async void SendMasterDeliveryAddressParty(ITimed_Client _httpClient, string _DTS_connectionString)
         {
@@ -29,11 +29,11 @@ namespace Aquazania.Integration.ServerApp.Client.DeliveryAddress
                     connection.Open();
                     string sql = "UPDATE [Temp Master Party Contract] "
                                + "	SET [Synced] = 1 "
-                               + "WHERE PartyType = 'DeliveryAddress' AND "
+                               + "WHERE PartyType = 'SupplierDeliveryAddress' AND "
                                + "	  PartyCode IN (SELECT PartyCode "
                                + "					FROM [Temp Master Party Contract] "
                                + "					WHERE [Synced] = 0 AND "
-                               + "						  [PartyType] = 'DeliveryAddress' "
+                               + "						  [PartyType] = 'SupplierDeliveryAddress' "
                                + "					GROUP BY PartyCode) ";
                     var command = new OdbcCommand(sql, connection);
                     int rows = command.ExecuteNonQuery();
@@ -55,7 +55,7 @@ namespace Aquazania.Integration.ServerApp.Client.DeliveryAddress
                     string sql = "SELECT PartyCode "
                                + "FROM [Temp Master Party Contract] "
                                + "WHERE [Synced] = 0 AND "
-                               + "	  [PartyType] = 'DeliveryAddress' "
+                               + "	  [PartyType] = 'SupplierDeliveryAddress' "
                                + "GROUP BY PartyCode ";
                     var command = new OdbcCommand(sql, connection);
                     var reader = command.ExecuteReader();
@@ -69,18 +69,18 @@ namespace Aquazania.Integration.ServerApp.Client.DeliveryAddress
                                 {
                                     connectionAcc.Open();
                                     string sqlAcc = "SELECT * " +
-                                                    "FROM [Delivery Address] T1 " +
-                                                    "   INNER JOIN [Customer] T2 ON " +
-                                                    "       T1.[Account No] = T2.[Account No] " +
+                                                    "FROM [Supplier Delivery Address] T1 " +
+                                                    "   INNER JOIN [Supplier] T2 ON " +
+                                                    "       T1.[Supplier No] = T2.[Supplier No] " +
                                                     " WHERE [Delivery Address Code] = '" + reader["PartyCode"].ToString() + "'";
                                     var commandAcc = new OdbcCommand(sqlAcc, connectionAcc);
                                     var readerAcc = commandAcc.ExecuteReader();
                                     while (readerAcc.Read())
                                     {
                                         MasterOwnedPartyContract DeliveryAddress = new MasterOwnedPartyContract();
-                                        DeliveryAddress.ParentPartyCode = reader["Account No"].ToString();
-                                        DeliveryAddress.ParentPartyType = "Customer";
-                                        DeliveryAddress.ParentPartyFullName = reader["Account Name"].ToString();
+                                        DeliveryAddress.ParentPartyCode = reader["Supplier No"].ToString();
+                                        DeliveryAddress.ParentPartyType = "Supplier";
+                                        DeliveryAddress.ParentPartyFullName = reader["Supplier Name"].ToString();
                                         DeliveryAddress.PartyCode = readerAcc["Delivery Address Code"].ToString();
                                         DeliveryAddress.PartyType = "DeliveryAddress";
                                         DeliveryAddress.PartyFullName = readerAcc["Delivery Address Line 2"].ToString() + " " + readerAcc["Delivery Address Line 3"].ToString();
