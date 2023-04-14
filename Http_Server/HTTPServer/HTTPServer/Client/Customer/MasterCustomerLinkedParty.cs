@@ -6,13 +6,14 @@ namespace HTTPServer.Client.Customer
 {
     public class MasterCustomerLinkedParty
     {
+        public MasterCustomerLinkedParty(string url) { darielURL = url; }
+        private string darielURL;
         public async void SendMasterCustomerLinkedParty(ITimed_Client _httpClient, string _COM_connectionString)
         {
-            var url = "https://aquazania-telephony-in-func-demo.azurewebsites.net/api/AddParties";
             var data = buildMasterCustomerLinkObject(_COM_connectionString);
             if (data.Count > 0)
             {
-                var response = await _httpClient.SendAsync(data, url);
+                var response = await _httpClient.SendAsync(data, darielURL);
 
                 if (response.IsSuccessStatusCode)
                 {

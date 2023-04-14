@@ -6,13 +6,14 @@ namespace Aquazania.Integration.ServerApp.Client.User
 {
     public class MasterUserParty
     {
+        public MasterUserParty(string url) { darielURL = url; }
+        private string darielURL;
         public async void SendMasterUserParty(ITimed_Client _httpClient, string _DTS_connectionString)
         {
             var data = buildMasterUserObject(_DTS_connectionString);
-            var url = "https://aquazania-telephony-in-func-demo.azurewebsites.net/api/AddParties";
             if (data.Count > 0)
             {
-                var response = await _httpClient.SendAsync(data, url);
+                var response = await _httpClient.SendAsync(data, darielURL);
 
                 if (response.IsSuccessStatusCode)
                 {
