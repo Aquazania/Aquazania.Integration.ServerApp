@@ -6,12 +6,10 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
     public class UserParty : IPartyConvertor
     {
         private string _DTS_connectionString;
-
         public UserParty(IConfiguration configuration)
         {
             _DTS_connectionString = configuration.GetConnectionString("DTS_Connection");
         }
-
         public int Convert(ChangedPartyContactContract party)
         {
             int rows = 0;
@@ -44,7 +42,6 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
                 }
             }
         }
-
         public int UpdateRequired(ChangedPartyContactContract party)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
@@ -77,7 +74,6 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
                 }
             }
         }
-
         public bool ValidateParty(ChangedPartyContactContract party)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))

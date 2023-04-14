@@ -23,7 +23,7 @@ if (app.Environment.IsDevelopment())
 }
 
 var client = builder.Services.BuildServiceProvider().GetRequiredService<Timed_Client>();
-//client.StartTimer();
+client.StartTimer();
 
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 

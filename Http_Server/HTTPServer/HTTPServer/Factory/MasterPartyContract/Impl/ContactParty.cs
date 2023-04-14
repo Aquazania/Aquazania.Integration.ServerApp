@@ -25,7 +25,6 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
             }
             return rows;
         }
-
         public int DoInsert(ChangedPartyContactContract party)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
@@ -91,7 +90,6 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
                 }
             }
         }
-
         public int UpdateRequired(ChangedPartyContactContract party)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
@@ -129,7 +127,6 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
                 }
             }
         }
-
         public bool ValidateParty(ChangedPartyContactContract party)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))

@@ -14,9 +14,7 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
         {
             _DTS_connectionString = configuration.GetConnectionString("DTS_Connection");
         }
-
         private string _DTS_connectionString;
-
         public int Convert(ChangedPartyContactContract party)
         {
             int rows = 0;
@@ -94,7 +92,7 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
         }
         public int PerformUpdate(string updatedField, string oldValue, string newValue, ChangedPartyContactContract party)
         {
-            EnterHistoryRecord(updatedField, oldValue, newValue, party.PartyCode);
+            EnterHistoryRecord(updatedField, oldValue, newValue, party.PartyCode, party.User.UserName);
 
             using (var connection = new OdbcConnection(_DTS_connectionString))
             {
@@ -311,7 +309,7 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
             #endregion
 
         }
-        public void EnterHistoryRecord(string updatedField, string oldValue, string newValue, string accountNo)
+        public void EnterHistoryRecord(string updatedField, string oldValue, string newValue, string accountNo, string userName)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
             {
@@ -325,7 +323,7 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
                                + "							   ,[Reference Type] "
                                + "							   ,[Key Value] "
                                + "							   ,[Date Stamp]) "
-                               + "SELECT 'Dariel', "
+                               + "SELECT '" + userName + "', "
                                + "	     NULL, "
                                + "	     1, "
                                + "	     '" + accountNo + "', "

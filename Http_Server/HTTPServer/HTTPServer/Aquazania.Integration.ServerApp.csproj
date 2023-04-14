@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <Reference Include="Aquazania.Telephony.Integration">
-      <HintPath>..\DLL_2\Aquazania.Telephony.Integration.dll</HintPath>
+      <HintPath>..\DLL\Aquazania.Telephony.Integration.dll</HintPath>
     </Reference>
   </ItemGroup>
 

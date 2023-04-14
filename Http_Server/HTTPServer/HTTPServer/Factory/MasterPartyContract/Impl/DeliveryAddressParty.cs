@@ -13,7 +13,6 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
         }
 
         private string _DTS_connectionString;
-
         public int Convert(ChangedPartyContactContract party)
         {
             int rows = 0;
@@ -27,7 +26,6 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
             }
             return rows;
         }
-
         public bool ValidateParty(ChangedPartyContactContract party)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
@@ -57,7 +55,6 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
                 }
             }
         }
-
         public int UpdateRequired(ChangedPartyContactContract party)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
@@ -99,7 +96,6 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
                 }
             }
         }
-
         public int PerformUpdate(string updatedField, string oldValue, string newValue, ChangedPartyContactContract party)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
@@ -110,14 +106,14 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
                     string sql = "";
                     if (party.ParentPartyType == "Supplier")
                     {
-                        EnterHistoryRecord(updatedField, oldValue, newValue, party.PartyCode, 44, "Supplier Delivery Address");
+                        EnterHistoryRecord(updatedField, oldValue, newValue, party.PartyCode, 44, "Supplier Delivery Address", party.User.UserName);
                         sql = "UPDATE [Supplier Delivery Address] "
                             + "	SET [" + updatedField + "] = '" + newValue + "' "
                             + "WHERE [Delivery Address Code] = '" + party.PartyCode + "'";
                     }
                     else
                     {
-                        EnterHistoryRecord(updatedField, oldValue, newValue, party.PartyCode, 14, "Delivery Address");
+                        EnterHistoryRecord(updatedField, oldValue, newValue, party.PartyCode, 14, "Delivery Address", party.User.UserName);
                         sql = "UPDATE [Delivery Address] "
                             + "	SET [" + updatedField + "] = '" + newValue + "' "
                             + "WHERE [Delivery Address Code] = '" + party.PartyCode + "'";
@@ -131,8 +127,7 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
                 }
             }
         }
-
-        public void EnterHistoryRecord(string updatedField, string oldValue, string newValue, string deliveryAddressCode, int referenceType, string tableName)
+        public void EnterHistoryRecord(string updatedField, string oldValue, string newValue, string deliveryAddressCode, int referenceType, string tableName, string userName)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
             {
@@ -145,7 +140,7 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
                                + "							   ,[Reference Type] "
                                + "							   ,[Key Value] "
                                + "							   ,[Date Stamp]) "
-                               + "SELECT 'Dariel', "
+                               + "SELECT '" + userName + "', "
                                + "	     NULL, "
                                + "	     " + referenceType + ", "
                                + "	     '" + deliveryAddressCode + "', "

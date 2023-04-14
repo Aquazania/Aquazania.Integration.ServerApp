@@ -24,10 +24,9 @@ namespace Aquazania.Integration.ServerApp.Factory.MasterPartyContract.Impl
             }
             return rows;
         }
-
         public int PerformUpdate(string updatedField, string oldValue, string newValue, ChangedPartyContactContract party)
         {
-            EnterHistoryRecord(updatedField, oldValue, newValue, party.PartyCode);
+            EnterHistoryRecord(updatedField, oldValue, newValue, party.PartyCode, party.User.UserName);
 
             using (var connection = new OdbcConnection(_DTS_connectionString))
             {
@@ -36,7 +35,7 @@ namespace Aquazania.Integration.ServerApp.Factory.MasterPartyContract.Impl
                     connection.Open();
                     string sql = "UPDATE [Consumables] "
                                + "	SET [" + updatedField + "] = '" + newValue + "' "
-                               + "WHERE [Account No] = '" + party.PartyCode + "'";
+                               + "WHERE [Delivery Address Code] = '" + party.PartyCode + "'";
                     var command = new OdbcCommand(sql, connection);
                     return command.ExecuteNonQuery();
                 }
@@ -46,7 +45,6 @@ namespace Aquazania.Integration.ServerApp.Factory.MasterPartyContract.Impl
                 }
             }
         }
-
         public int UpdateRequired(ChangedPartyContactContract party)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
@@ -84,7 +82,6 @@ namespace Aquazania.Integration.ServerApp.Factory.MasterPartyContract.Impl
                 }
             }
         }
-
         public bool ValidateParty(ChangedPartyContactContract party)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
@@ -110,7 +107,7 @@ namespace Aquazania.Integration.ServerApp.Factory.MasterPartyContract.Impl
                 }
             }
         }
-        public void EnterHistoryRecord(string updatedField, string oldValue, string newValue, string deliveryAddressCode)
+        public void EnterHistoryRecord(string updatedField, string oldValue, string newValue, string deliveryAddressCode, string userName)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
             {
@@ -124,7 +121,7 @@ namespace Aquazania.Integration.ServerApp.Factory.MasterPartyContract.Impl
                                + "							   ,[Reference Type] "
                                + "							   ,[Key Value] "
                                + "							   ,[Date Stamp]) "
-                               + "SELECT 'Dariel', "
+                               + "SELECT '" + userName + "', "
                                + "	     NULL, "
                                + "	     14, "
                                + "	     '" + deliveryAddressCode + "', "

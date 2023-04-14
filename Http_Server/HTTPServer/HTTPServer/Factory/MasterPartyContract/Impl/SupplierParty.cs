@@ -26,8 +26,7 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
             }
             return rows;
         }
-
-        public void EnterHistoryRecord(string updatedField, string oldValue, string newValue, string accountNo)
+        public void EnterHistoryRecord(string updatedField, string oldValue, string newValue, string accountNo, string userName)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
             {
@@ -41,7 +40,7 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
                                + "							   ,[Reference Type] "
                                + "							   ,[Key Value] "
                                + "							   ,[Date Stamp]) "
-                               + "SELECT 'Dariel', "
+                               + "SELECT '" + userName + "', "
                                + "	     NULL, "
                                + "	     4, "
                                + "	     '" + accountNo + "', "
@@ -66,10 +65,9 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
                 }
             }
         }
-
         public int PerformUpdate(string updatedField, string oldValue, string newValue, ChangedPartyContactContract party)
         {
-            EnterHistoryRecord(updatedField, oldValue, newValue, party.PartyCode);
+            EnterHistoryRecord(updatedField, oldValue, newValue, party.PartyCode, party.User.UserName);
 
             using (var connection = new OdbcConnection(_DTS_connectionString))
             {
@@ -88,7 +86,6 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
                 }
             }
         }
-
         public int UpdateRequired(ChangedPartyContactContract party)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
@@ -126,7 +123,6 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
                 }
             }
         }
-
         public bool ValidateParty(ChangedPartyContactContract party)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
