@@ -75,7 +75,8 @@ namespace Aquazania.Integration.ServerApp.Client.Contract
                                     while (readerAcc.Read())
                                     {
                                         MasterOwnedPartyContract contract = new MasterOwnedPartyContract();
-                                        if (!readerAcc.IsDBNull(reader.GetOrdinal("Account No")))
+                                        int accountNoIndex = readerAcc.GetOrdinal("Account No");
+                                        if (!readerAcc.IsDBNull(accountNoIndex))
                                         {
                                             contract.ParentPartyCode = readerAcc["Account No"].ToString();
                                             contract.ParentPartyType = "Customer";
