@@ -80,7 +80,7 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
                     connection.Open();
                     string sql = "UPDATE [Contact] "
                                + "	SET [" + updatedField + "] = '" + newValue + "' "
-                               + "WHERE [Account No] = '" + party.PartyCode + "'";
+                               + "WHERE [Contact No] = '" + party.PartyCode + "'";
                     var command = new OdbcCommand(sql, connection);
                     return command.ExecuteNonQuery();
                 }

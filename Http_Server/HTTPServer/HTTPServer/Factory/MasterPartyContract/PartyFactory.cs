@@ -6,7 +6,7 @@ namespace HTTPServer.Factory.MasterPartyContract
 {
     public class PartyFactory
     {
-        enum PartyTypes { Contract, Customer, DeliveryAddress, Supplier, User, Contact, Consumables }
+        enum PartyTypes { Contract, Customer, DeliveryAddress, Supplier, User, Contact, Consumable }
 
         public static IPartyConvertor Create(ChangedPartyContactContract party)
         {
@@ -34,7 +34,7 @@ namespace HTTPServer.Factory.MasterPartyContract
                     return new UserParty(configuration);
                 case PartyTypes.Contact:
                     return new ContactParty(configuration);
-                case PartyTypes.Consumables:
+                case PartyTypes.Consumable:
                     return new ConsumableParty(configuration);
                 default:
                     throw new NotSupportedException($"Party type {partyType} is not supported.");

@@ -22,8 +22,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-var client = builder.Services.BuildServiceProvider().GetRequiredService<Timed_Client>();
-client.StartTimer();
+//var client = builder.Services.BuildServiceProvider().GetRequiredService<Timed_Client>();
+//client.StartTimer();
 
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
