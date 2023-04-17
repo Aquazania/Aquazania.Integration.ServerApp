@@ -23,6 +23,7 @@ namespace HTTPServer.Client
         private string _DTS_connectionString;
         private string _COM_connectionString;
         private string _darielURL;
+        private string _darielURLContact;
         public Timed_Client(ITimed_Client timed_client)
         {
             var configuration = new ConfigurationBuilder()
@@ -34,6 +35,7 @@ namespace HTTPServer.Client
             _DTS_connectionString = configuration.GetConnectionString("DTS_Connection");
             _COM_connectionString = configuration.GetConnectionString("Communicator_Connection");
             _darielURL = configuration.GetSection("darielURL").Value;
+            _darielURLContact = configuration.GetSection("darielURLContact").Value;
         }
 
         public void StartTimer()
@@ -45,37 +47,37 @@ namespace HTTPServer.Client
         {
             MasterContactParty contactmaster = new MasterContactParty(_darielURL);
             contactmaster.SendMasterContactParty(_httpClient, _DTS_connectionString);
-            MasterContactLinkedParty contactlinkedparty = new MasterContactLinkedParty(_darielURL);
+            MasterContactLinkedParty contactlinkedparty = new MasterContactLinkedParty(_darielURLContact);
             contactlinkedparty.SendMasterContactLinkedParty(_httpClient, _COM_connectionString);
 
             MasterContractParty contractmaster = new MasterContractParty(_darielURL);
             contractmaster.SendMasterContractParty(_httpClient, _DTS_connectionString);
-            MasterContractLinkedParty contractlinkedparty = new MasterContractLinkedParty(_darielURL);
+            MasterContractLinkedParty contractlinkedparty = new MasterContractLinkedParty(_darielURLContact);
             contractlinkedparty.SendMasterContractLinkedParty(_httpClient, _COM_connectionString);  
 
             MasterCustomerParty customermaster = new MasterCustomerParty(_darielURL); 
             customermaster.SendMasterCustomerParty(_httpClient, _DTS_connectionString);
-            MasterCustomerLinkedParty customerlinkedParty = new MasterCustomerLinkedParty(_darielURL);
+            MasterCustomerLinkedParty customerlinkedParty = new MasterCustomerLinkedParty(_darielURLContact);
             customerlinkedParty.SendMasterCustomerLinkedParty(_httpClient, _COM_connectionString);
 
             MasterDeliveryAddressParty deliveryAddressMaster = new MasterDeliveryAddressParty(_darielURL);
             deliveryAddressMaster.SendMasterDeliveryAddressParty(_httpClient, _DTS_connectionString);
-            MasterDeliveryAddressLinkedParty deliveryAddressLinkedMaster = new MasterDeliveryAddressLinkedParty(_darielURL); 
+            MasterDeliveryAddressLinkedParty deliveryAddressLinkedMaster = new MasterDeliveryAddressLinkedParty(_darielURLContact); 
             deliveryAddressLinkedMaster.SendMasterDeliveryAddressLinkedParty(_httpClient, _COM_connectionString);
 
             MasterSupplierParty supplierMaster = new MasterSupplierParty(_darielURL);
             supplierMaster.SendMasterSupplierParty(_httpClient, _DTS_connectionString);
-            MasterSupplierLinkedParty supplierLinkedParty = new MasterSupplierLinkedParty(_darielURL);
+            MasterSupplierLinkedParty supplierLinkedParty = new MasterSupplierLinkedParty(_darielURLContact);
             supplierLinkedParty.SendMasterSupplierLinkedParty(_httpClient, _COM_connectionString);
 
             MasterSupplierDeliveryAddressParty masterSupplierDeliveryAddress = new MasterSupplierDeliveryAddressParty(_darielURL);
             masterSupplierDeliveryAddress.SendMasterDeliveryAddressParty( _httpClient, _DTS_connectionString);
-            MasterSupplierDeliveryAddressLinkedParty masterSupplierDeliveryAddressLinkedParty = new MasterSupplierDeliveryAddressLinkedParty(_darielURL); 
+            MasterSupplierDeliveryAddressLinkedParty masterSupplierDeliveryAddressLinkedParty = new MasterSupplierDeliveryAddressLinkedParty(_darielURLContact); 
             masterSupplierDeliveryAddressLinkedParty.SendMasterDeliveryAddressLinkedParty( _httpClient, _COM_connectionString);
 
             MasterUserParty masterUserParty = new MasterUserParty(_darielURL);
             masterUserParty.SendMasterUserParty( _httpClient, _DTS_connectionString);
-            MasterUserLinkedParty masterUserLinkedParty = new MasterUserLinkedParty(_darielURL);
+            MasterUserLinkedParty masterUserLinkedParty = new MasterUserLinkedParty(_darielURLContact);
             masterUserLinkedParty.SendMasterUserLinkedParty( _httpClient, _COM_connectionString);
 
             MasterConsumableParty masterConsumableParty = new MasterConsumableParty(_darielURL);

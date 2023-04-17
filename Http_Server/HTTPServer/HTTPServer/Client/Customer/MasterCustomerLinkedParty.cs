@@ -70,7 +70,7 @@ namespace HTTPServer.Client.Customer
                                 try
                                 {
                                     connectionAcc.Open();
-                                    string sqlAcc = "SELECT * FROM [viewContactDocumentReference] WHERE [DocumentReferenceCode] = '" + reader["PartyCode"].ToString() + "'";
+                                    string sqlAcc = "SELECT * FROM [viewContactDocumentReference] WHERE [DocumentReferenceCode] = '" + reader["PartyCode"].ToString() + "' AND ContactPointTypeID = 2";
                                     var commandAcc = new OdbcCommand(sqlAcc, connectionAcc);
                                     var readerAcc = commandAcc.ExecuteReader();
                                     while (readerAcc.Read())
