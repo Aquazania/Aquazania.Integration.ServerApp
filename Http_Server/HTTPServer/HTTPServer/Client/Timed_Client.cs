@@ -1,4 +1,5 @@
-﻿using Aquazania.Integration.ServerApp.Client.Contact;
+﻿using Aquazania.Integration.ServerApp.Client.Consumable;
+using Aquazania.Integration.ServerApp.Client.Contact;
 using Aquazania.Integration.ServerApp.Client.Contract;
 using Aquazania.Integration.ServerApp.Client.DeliveryAddress;
 using Aquazania.Integration.ServerApp.Client.Supplier;
@@ -76,6 +77,9 @@ namespace HTTPServer.Client
             masterUserParty.SendMasterUserParty( _httpClient, _DTS_connectionString);
             MasterUserLinkedParty masterUserLinkedParty = new MasterUserLinkedParty(_darielURL);
             masterUserLinkedParty.SendMasterUserLinkedParty( _httpClient, _COM_connectionString);
+
+            MasterConsumableParty masterConsumableParty = new MasterConsumableParty(_darielURL);
+            masterConsumableParty.SendMasterConsumableParty( _httpClient, _DTS_connectionString);
         }
     }
 }

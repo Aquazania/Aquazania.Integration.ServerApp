@@ -75,7 +75,8 @@ namespace Aquazania.Integration.ServerApp.Client.User
                                     while (readerAcc.Read())
                                     {
                                         MasterOwnedPartyContract user = new MasterOwnedPartyContract();
-                                        if (!readerAcc.IsDBNull(reader.GetOrdinal("Account No")))
+                                        int accountNoIndex = readerAcc.GetOrdinal("Account No");
+                                        if (!readerAcc.IsDBNull(accountNoIndex))
                                         {
                                             user.ParentPartyCode = readerAcc["Account No"].ToString();
                                             user.ParentPartyType = "Customer";
@@ -88,8 +89,8 @@ namespace Aquazania.Integration.ServerApp.Client.User
                                         user.ParentPartyFullName = null;
                                         user.PartyCode = readerAcc["User Name"].ToString();
                                         user.PartyType = "User";
-                                        user.PartyFullName = readerAcc["First Name"].ToString() + " " + readerAcc["Last Name"].ToString();
-                                        user.PartyPrimaryContactFullName = readerAcc["First Name"].ToString() + " " + readerAcc["Last Name"].ToString();
+                                        user.PartyFullName = readerAcc["First Name"].ToString() + " " + readerAcc["Surname"].ToString();
+                                        user.PartyPrimaryContactFullName = readerAcc["First Name"].ToString() + " " + readerAcc["Surname"].ToString();
                                         user.PartyPrimaryTelephoneNumber = readerAcc["Telephone No"].ToString();
                                         user.PartyPrimaryCellNumber = readerAcc["Cell Phone No"].ToString();
                                         user.IsActive = true;

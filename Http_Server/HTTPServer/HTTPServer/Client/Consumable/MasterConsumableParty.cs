@@ -2,26 +2,26 @@
 using HTTPServer.Client;
 using System.Data.Odbc;
 
-namespace Aquazania.Integration.ServerApp.Client.SupplierDeliveryAddress
+namespace Aquazania.Integration.ServerApp.Client.Consumable
 {
-    public class MasterSupplierDeliveryAddressParty
+    public class MasterConsumableParty
     {
-        public MasterSupplierDeliveryAddressParty(string url) { darielURL = url; }
+        public MasterConsumableParty(string url) { darielURL = url; }
         private string darielURL;
-        public async void SendMasterDeliveryAddressParty(ITimed_Client _httpClient, string _DTS_connectionString)
+        public async void SendMasterConsumableParty(ITimed_Client _httpClient, string _DTS_connectionString)
         {
-            var data = buildMasterDeliveryAddressObject(_DTS_connectionString);
+            var data = buildMasterConsumableObject(_DTS_connectionString);
             if (data.Count > 0)
             {
                 var response = await _httpClient.SendAsync(data, darielURL);
 
                 if (response.IsSuccessStatusCode)
                 {
-                    UpdateSyncDeliveryAddressMasterTable(_DTS_connectionString);
+                    UpdateSyncConsumableMasterTable(_DTS_connectionString);
                 }
             }
         }
-        private void UpdateSyncDeliveryAddressMasterTable(string _DTS_connectionString)
+        private void UpdateSyncConsumableMasterTable(string _DTS_connectionString)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
             {
@@ -30,11 +30,11 @@ namespace Aquazania.Integration.ServerApp.Client.SupplierDeliveryAddress
                     connection.Open();
                     string sql = "UPDATE [Temp Master Party Contract] "
                                + "	SET [Synced] = 1 "
-                               + "WHERE PartyType = 'SupplierDeliveryAddress' AND "
+                               + "WHERE PartyType = 'Consumables' AND "
                                + "	  PartyCode IN (SELECT PartyCode "
                                + "					FROM [Temp Master Party Contract] "
                                + "					WHERE [Synced] = 0 AND "
-                               + "						  [PartyType] = 'SupplierDeliveryAddress' "
+                               + "						  [PartyType] = 'Consumables' "
                                + "					GROUP BY PartyCode) ";
                     var command = new OdbcCommand(sql, connection);
                     int rows = command.ExecuteNonQuery();
@@ -45,9 +45,9 @@ namespace Aquazania.Integration.ServerApp.Client.SupplierDeliveryAddress
                 }
             }
         }
-        private List<MasterOwnedPartyContract> buildMasterDeliveryAddressObject(string _DTS_connectionString)
+        private List<MasterOwnedPartyContract> buildMasterConsumableObject(string _DTS_connectionString)
         {
-            List<MasterOwnedPartyContract> DeliveryAddressUpdates = new List<MasterOwnedPartyContract>();
+            List<MasterOwnedPartyContract> ConsumablesUpdates = new List<MasterOwnedPartyContract>();
             using (var connection = new OdbcConnection(_DTS_connectionString))
             {
                 try
@@ -56,7 +56,7 @@ namespace Aquazania.Integration.ServerApp.Client.SupplierDeliveryAddress
                     string sql = "SELECT PartyCode "
                                + "FROM [Temp Master Party Contract] "
                                + "WHERE [Synced] = 0 AND "
-                               + "	  [PartyType] = 'SupplierDeliveryAddress' "
+                               + "	  [PartyType] = 'Consumables' "
                                + "GROUP BY PartyCode ";
                     var command = new OdbcCommand(sql, connection);
                     var reader = command.ExecuteReader();
@@ -69,27 +69,28 @@ namespace Aquazania.Integration.ServerApp.Client.SupplierDeliveryAddress
                                 try
                                 {
                                     connectionAcc.Open();
-                                    string sqlAcc = "SELECT * " +
-                                                    "FROM [Supplier Delivery Address] T1 " +
-                                                    "   INNER JOIN [Supplier] T2 ON " +
-                                                    "       T1.[Supplier No] = T2.[Supplier No] " +
+                                    string sqlAcc = "SELECT T1.*,  " +
+                                                    "       T2.[Account Name]" +
+                                                    "FROM [Consumables] T1 " +
+                                                    "   INNER JOIN [Customer] T2 ON " +
+                                                    "       T1.[Account No] = T2.[Account No] " +
                                                     " WHERE [Delivery Address Code] = '" + reader["PartyCode"].ToString() + "'";
                                     var commandAcc = new OdbcCommand(sqlAcc, connectionAcc);
                                     var readerAcc = commandAcc.ExecuteReader();
                                     while (readerAcc.Read())
                                     {
-                                        MasterOwnedPartyContract DeliveryAddress = new MasterOwnedPartyContract();
-                                        DeliveryAddress.ParentPartyCode = readerAcc["Supplier No"].ToString();
-                                        DeliveryAddress.ParentPartyType = "Supplier";
-                                        DeliveryAddress.ParentPartyFullName = readerAcc["Supplier Name"].ToString();
-                                        DeliveryAddress.PartyCode = readerAcc["Delivery Address Code"].ToString();
-                                        DeliveryAddress.PartyType = "DeliveryAddress";
-                                        DeliveryAddress.PartyFullName = readerAcc["Delivery Address Line 2"].ToString() + " " + readerAcc["Delivery Address Line 3"].ToString();
-                                        DeliveryAddress.PartyPrimaryContactFullName = readerAcc["Contact Person"].ToString();
-                                        DeliveryAddress.PartyPrimaryTelephoneNumber = readerAcc["Tel No For Contact Person"].ToString();
-                                        DeliveryAddress.PartyPrimaryCellNumber = readerAcc["Cell No For Contact Person"].ToString();
-                                        DeliveryAddress.IsActive = true;
-                                        DeliveryAddressUpdates.Add(DeliveryAddress);
+                                        MasterOwnedPartyContract Consumable = new MasterOwnedPartyContract();
+                                        Consumable.ParentPartyCode = readerAcc["Account No"].ToString();
+                                        Consumable.ParentPartyType = "Customer";
+                                        Consumable.ParentPartyFullName = readerAcc["Account Name"].ToString();
+                                        Consumable.PartyCode = readerAcc["Delivery Address Code"].ToString();
+                                        Consumable.PartyType = "DeliveryAddress";
+                                        Consumable.PartyFullName = readerAcc["Account Name"].ToString();
+                                        Consumable.PartyPrimaryContactFullName = readerAcc["Consumables Contact Person"].ToString();
+                                        Consumable.PartyPrimaryTelephoneNumber = readerAcc["Tel No For Consumables Contact Person"].ToString();
+                                        Consumable.PartyPrimaryCellNumber = readerAcc["Cell No For Consumables Contact Person"].ToString();
+                                        Consumable.IsActive = true;
+                                        ConsumablesUpdates.Add(Consumable);
                                     }
                                 }
                                 catch (OdbcException ex)
@@ -98,7 +99,7 @@ namespace Aquazania.Integration.ServerApp.Client.SupplierDeliveryAddress
                                 }
                             }
                         }
-                        return DeliveryAddressUpdates;
+                        return ConsumablesUpdates;
                     }
                     else
                     {

@@ -69,7 +69,8 @@ namespace Aquazania.Integration.ServerApp.Client.DeliveryAddress
                                 try
                                 {
                                     connectionAcc.Open();
-                                    string sqlAcc = "SELECT * " +
+                                    string sqlAcc = "SELECT T1.*,  " +
+                                                    "       T2.[Account Name]" +
                                                     "FROM [Delivery Address] T1 " +
                                                     "   INNER JOIN [Customer] T2 ON " +
                                                     "       T1.[Account No] = T2.[Account No] " +
@@ -79,9 +80,9 @@ namespace Aquazania.Integration.ServerApp.Client.DeliveryAddress
                                     while (readerAcc.Read())
                                     {
                                         MasterOwnedPartyContract DeliveryAddress = new MasterOwnedPartyContract();
-                                        DeliveryAddress.ParentPartyCode = reader["Account No"].ToString();
+                                        DeliveryAddress.ParentPartyCode = readerAcc["Account No"].ToString();
                                         DeliveryAddress.ParentPartyType = "Customer";
-                                        DeliveryAddress.ParentPartyFullName = reader["Account Name"].ToString();
+                                        DeliveryAddress.ParentPartyFullName = readerAcc["Account Name"].ToString();
                                         DeliveryAddress.PartyCode = readerAcc["Delivery Address Code"].ToString();
                                         DeliveryAddress.PartyType = "DeliveryAddress";
                                         DeliveryAddress.PartyFullName = readerAcc["Delivery Address Line 2"].ToString() + " " + readerAcc["Delivery Address Line 3"].ToString();
