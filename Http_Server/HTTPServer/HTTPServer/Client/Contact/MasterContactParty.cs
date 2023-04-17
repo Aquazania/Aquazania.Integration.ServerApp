@@ -69,7 +69,7 @@ namespace Aquazania.Integration.ServerApp.Client.Contact
                                 try
                                 {
                                     connectionAcc.Open();
-                                    string sqlAcc = "SELECT * FROM [Contact] WHERE [Contact No] = '" + reader["PartyCode"].ToString() + "'";
+                                    string sqlAcc = "SELECT * FROM [Contact] WHERE [Contact No] = " + reader["PartyCode"].ToString();
                                     var commandAcc = new OdbcCommand(sqlAcc, connectionAcc);
                                     var readerAcc = commandAcc.ExecuteReader();
                                     while (readerAcc.Read())
