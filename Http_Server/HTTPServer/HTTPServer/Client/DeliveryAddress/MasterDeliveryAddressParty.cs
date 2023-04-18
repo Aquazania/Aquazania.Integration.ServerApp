@@ -4,112 +4,126 @@ using System.Data.Odbc;
 
 namespace Aquazania.Integration.ServerApp.Client.DeliveryAddress
 {
-    public class MasterDeliveryAddressParty
+
+    public class MasterDeliveryAddressParty : IMasterParty
     {
         public MasterDeliveryAddressParty(string url) { darielURL = url; }
         private string darielURL;
-        public async void SendMasterDeliveryAddressParty(ITimed_Client _httpClient, string _DTS_connectionString)
-        {
-            var data = buildMasterDeliveryAddressObject(_DTS_connectionString);
-            if (data.Count > 0)
-            {
-                var response = await _httpClient.SendAsync(data, darielURL);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    UpdateSyncDeliveryAddressMasterTable(_DTS_connectionString);
-                }
-            }
-        }
-        private void UpdateSyncDeliveryAddressMasterTable(string _DTS_connectionString)
+        public async void SendMasterParty(ITimed_Client _httpClient, string _DTS_connectionString)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
             {
-                try
+                await connection.OpenAsync();
+                using (var transaction = connection.BeginTransaction())
                 {
-                    connection.Open();
-                    string sql = "UPDATE [Temp Master Party Contract] "
-                               + "	SET [Synced] = 1 "
-                               + "WHERE PartyType = 'DeliveryAddress' AND "
-                               + "	  PartyCode IN (SELECT PartyCode "
-                               + "					FROM [Temp Master Party Contract] "
-                               + "					WHERE [Synced] = 0 AND "
-                               + "						  [PartyType] = 'DeliveryAddress' "
-                               + "					GROUP BY PartyCode) ";
-                    var command = new OdbcCommand(sql, connection);
-                    int rows = command.ExecuteNonQuery();
-                }
-                catch (OdbcException ex)
-                {
-                    throw ex;
-                }
-            }
-        }
-        private List<MasterOwnedPartyContract> buildMasterDeliveryAddressObject(string _DTS_connectionString)
-        {
-            List<MasterOwnedPartyContract> DeliveryAddressUpdates = new List<MasterOwnedPartyContract>();
-            using (var connection = new OdbcConnection(_DTS_connectionString))
-            {
-                try
-                {
-                    connection.Open();
-                    string sql = "SELECT PartyCode "
-                               + "FROM [Temp Master Party Contract] "
-                               + "WHERE [Synced] = 0 AND "
-                               + "	  [PartyType] = 'DeliveryAddress' "
-                               + "GROUP BY PartyCode ";
-                    var command = new OdbcCommand(sql, connection);
-                    var reader = command.ExecuteReader();
-                    if (reader.HasRows)
+                    try
                     {
-                        while (reader.Read())
+                        var data = buildMasterObject(connection, transaction);
+                        if (data.Count > 0)
                         {
-                            using (var connectionAcc = new OdbcConnection(_DTS_connectionString))
+                            var response = await _httpClient.SendAsync(data, darielURL);
+
+                            if (response.IsSuccessStatusCode)
                             {
-                                try
-                                {
-                                    connectionAcc.Open();
-                                    string sqlAcc = "SELECT T1.*,  " +
-                                                    "       T2.[Account Name]" +
-                                                    "FROM [Delivery Address] T1 " +
-                                                    "   INNER JOIN [Customer] T2 ON " +
-                                                    "       T1.[Account No] = T2.[Account No] " +
-                                                    " WHERE [Delivery Address Code] = '" + reader["PartyCode"].ToString() + "'";
-                                    var commandAcc = new OdbcCommand(sqlAcc, connectionAcc);
-                                    var readerAcc = commandAcc.ExecuteReader();
-                                    while (readerAcc.Read())
-                                    {
-                                        MasterOwnedPartyContract DeliveryAddress = new MasterOwnedPartyContract();
-                                        DeliveryAddress.ParentPartyCode = readerAcc["Account No"].ToString();
-                                        DeliveryAddress.ParentPartyType = "Customer";
-                                        DeliveryAddress.ParentPartyFullName = readerAcc["Account Name"].ToString();
-                                        DeliveryAddress.PartyCode = readerAcc["Delivery Address Code"].ToString();
-                                        DeliveryAddress.PartyType = "DeliveryAddress";
-                                        DeliveryAddress.PartyFullName = readerAcc["Delivery Address Line 2"].ToString() + " " + readerAcc["Delivery Address Line 3"].ToString();
-                                        DeliveryAddress.PartyPrimaryContactFullName = readerAcc["Contact Person"].ToString();
-                                        DeliveryAddress.PartyPrimaryTelephoneNumber = readerAcc["Tel No For Contact Person"].ToString();
-                                        DeliveryAddress.PartyPrimaryCellNumber = readerAcc["Cell No For Contact Person"].ToString();
-                                        DeliveryAddress.IsActive = true;
-                                        DeliveryAddressUpdates.Add(DeliveryAddress);
-                                    }
-                                }
-                                catch (OdbcException ex)
-                                {
-                                    throw ex;
-                                }
+                                UpdateSyncMasterTable(connection, transaction);
                             }
                         }
-                        return DeliveryAddressUpdates;
+
+                        transaction.Commit();
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        return new List<MasterOwnedPartyContract>();
+                        transaction.Rollback();
+                        throw;
                     }
                 }
-                catch (OdbcException ex)
+            }
+        }
+        public void UpdateSyncMasterTable(OdbcConnection connection, OdbcTransaction transaction)
+        {
+            try
+            {
+                connection.Open();
+                string sql = "UPDATE [Temp Master Party Contract] "
+                            + "	SET [Synced] = 1 "
+                            + "WHERE PartyType = 'DeliveryAddress' AND "
+                            + "	  PartyCode IN (SELECT PartyCode "
+                            + "					FROM [Temp Master Party Contract] "
+                            + "					WHERE [Synced] = 0 AND "
+                            + "						  [PartyType] = 'DeliveryAddress' "
+                            + "					GROUP BY PartyCode) ";
+                var command = new OdbcCommand(sql, connection);
+                command.Transaction = transaction;
+                int rows = command.ExecuteNonQuery();
+            }
+            catch (OdbcException ex)
+            {
+                throw ex;
+            }
+        }
+        public List<MasterOwnedPartyContract> buildMasterObject(OdbcConnection connection, OdbcTransaction transaction)
+        {
+            List<MasterOwnedPartyContract> DeliveryAddressUpdates = new List<MasterOwnedPartyContract>();
+            try
+            {
+                connection.Open();
+                string sql = "SELECT PartyCode "
+                            + "FROM [Temp Master Party Contract] "
+                            + "WHERE [Synced] = 0 AND "
+                            + "	  [PartyType] = 'DeliveryAddress' "
+                            + "GROUP BY PartyCode ";
+                var command = new OdbcCommand(sql, connection);
+                command.Transaction = transaction;
+                var reader = command.ExecuteReader();
+                if (reader.HasRows)
                 {
-                    throw ex;
+                    while (reader.Read())
+                    {
+                        using (var connectionAcc = new OdbcConnection(connection.ConnectionString))
+                        {
+                            try
+                            {
+                                connectionAcc.Open();
+                                string sqlAcc = "SELECT T1.*,  " +
+                                                "       T2.[Account Name]" +
+                                                "FROM [Delivery Address] T1 " +
+                                                "   INNER JOIN [Customer] T2 ON " +
+                                                "       T1.[Account No] = T2.[Account No] " +
+                                                " WHERE [Delivery Address Code] = '" + reader["PartyCode"].ToString() + "'";
+                                var commandAcc = new OdbcCommand(sqlAcc, connectionAcc);
+                                var readerAcc = commandAcc.ExecuteReader();
+                                while (readerAcc.Read())
+                                {
+                                    MasterOwnedPartyContract DeliveryAddress = new MasterOwnedPartyContract();
+                                    DeliveryAddress.ParentPartyCode = readerAcc["Account No"].ToString();
+                                    DeliveryAddress.ParentPartyType = "Customer";
+                                    DeliveryAddress.ParentPartyFullName = readerAcc["Account Name"].ToString();
+                                    DeliveryAddress.PartyCode = readerAcc["Delivery Address Code"].ToString();
+                                    DeliveryAddress.PartyType = "DeliveryAddress";
+                                    DeliveryAddress.PartyFullName = readerAcc["Delivery Address Line 2"].ToString() + " " + readerAcc["Delivery Address Line 3"].ToString();
+                                    DeliveryAddress.PartyPrimaryContactFullName = readerAcc["Contact Person"].ToString();
+                                    DeliveryAddress.PartyPrimaryTelephoneNumber = readerAcc["Tel No For Contact Person"].ToString();
+                                    DeliveryAddress.PartyPrimaryCellNumber = readerAcc["Cell No For Contact Person"].ToString();
+                                    DeliveryAddress.IsActive = true;
+                                    DeliveryAddressUpdates.Add(DeliveryAddress);
+                                }
+                            }
+                            catch (OdbcException ex)
+                            {
+                                throw ex;
+                            }
+                        }
+                    }
+                    return DeliveryAddressUpdates;
                 }
+                else
+                {
+                    return new List<MasterOwnedPartyContract>();
+                }
+            }
+            catch (OdbcException ex)
+            {
+                throw ex;
             }
         }
     }

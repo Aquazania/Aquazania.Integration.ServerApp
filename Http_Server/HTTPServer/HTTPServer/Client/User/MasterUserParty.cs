@@ -4,117 +4,137 @@ using System.Data.Odbc;
 
 namespace Aquazania.Integration.ServerApp.Client.User
 {
-    public class MasterUserParty
+    public class MasterUserParty : IMasterParty
     {
         public MasterUserParty(string url) { darielURL = url; }
         private string darielURL;
-        public async void SendMasterUserParty(ITimed_Client _httpClient, string _DTS_connectionString)
-        {
-            var data = buildMasterUserObject(_DTS_connectionString);
-            if (data.Count > 0)
-            {
-                var response = await _httpClient.SendAsync(data, darielURL);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    UpdateSyncUserMasterTable(_DTS_connectionString);
-                }
-            }
-        }
-        private void UpdateSyncUserMasterTable(string _DTS_connectionString)
+        public async void SendMasterParty(ITimed_Client _httpClient, string _DTS_connectionString)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
             {
-                try
+                await connection.OpenAsync();
+                using (var transaction = connection.BeginTransaction())
                 {
-                    connection.Open();
-                    string sql = "UPDATE [Temp Master Party Contract] "
-                               + "	SET [Synced] = 1 "
-                               + "WHERE PartyType = 'User' AND "
-                               + "	  PartyCode IN (SELECT PartyCode "
-                               + "					FROM [Temp Master Party Contract] "
-                               + "					WHERE [Synced] = 0 AND "
-                               + "						  [PartyType] = 'User' "
-                               + "					GROUP BY PartyCode) ";
-                    var command = new OdbcCommand(sql, connection);
-                    int rows = command.ExecuteNonQuery();
-                }
-                catch (OdbcException ex)
-                {
-                    throw ex;
-                }
-            }
-        }
-        private List<MasterOwnedPartyContract> buildMasterUserObject(string _DTS_connectionString)
-        {
-            List<MasterOwnedPartyContract> userUpdates = new List<MasterOwnedPartyContract>();
-            using (var connection = new OdbcConnection(_DTS_connectionString))
-            {
-                try
-                {
-                    connection.Open();
-                    string sql = "SELECT PartyCode "
-                               + "FROM [Temp Master Party Contract] "
-                               + "WHERE [Synced] = 0 AND "
-                               + "	  [PartyType] = 'User' "
-                               + "GROUP BY PartyCode ";
-                    var command = new OdbcCommand(sql, connection);
-                    var reader = command.ExecuteReader();
-                    if (reader.HasRows)
+                    try
                     {
-                        while (reader.Read())
+                        var data = buildMasterObject(connection, transaction);
+                        if (data.Count > 0)
                         {
-                            using (var connectionAcc = new OdbcConnection(_DTS_connectionString))
+                            var response = await _httpClient.SendAsync(data, darielURL);
+
+                            if (response.IsSuccessStatusCode)
                             {
-                                try
-                                {
-                                    connectionAcc.Open();
-                                    string sqlAcc = "SELECT * FROM [User] WHERE [User Name] = '" + reader["PartyCode"].ToString() + "'";
-                                    var commandAcc = new OdbcCommand(sqlAcc, connectionAcc);
-                                    var readerAcc = commandAcc.ExecuteReader();
-                                    while (readerAcc.Read())
-                                    {
-                                        MasterOwnedPartyContract user = new MasterOwnedPartyContract();
-                                        int accountNoIndex = readerAcc.GetOrdinal("Account No");
-                                        if (!readerAcc.IsDBNull(accountNoIndex))
-                                        {
-                                            user.ParentPartyCode = readerAcc["Account No"].ToString();
-                                            user.ParentPartyType = "Customer";
-                                        }
-                                        else
-                                        {
-                                            user.ParentPartyCode = null;
-                                            user.ParentPartyType = null;
-                                        }
-                                        user.ParentPartyFullName = null;
-                                        user.PartyCode = readerAcc["User Name"].ToString();
-                                        user.PartyType = "User";
-                                        user.PartyFullName = readerAcc["First Name"].ToString() + " " + readerAcc["Surname"].ToString();
-                                        user.PartyPrimaryContactFullName = readerAcc["First Name"].ToString() + " " + readerAcc["Surname"].ToString();
-                                        user.PartyPrimaryTelephoneNumber = readerAcc["Telephone No"].ToString();
-                                        user.PartyPrimaryCellNumber = readerAcc["Cell Phone No"].ToString();
-                                        user.IsActive = true;
-                                        userUpdates.Add(user);
-                                    }
-                                }
-                                catch (OdbcException ex)
-                                {
-                                    throw ex;
-                                }
+                                UpdateSyncMasterTable(connection, transaction);
                             }
                         }
-                        return userUpdates;
+
+                        transaction.Commit();
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        return new List<MasterOwnedPartyContract>();
+                        transaction.Rollback();
+                        throw;
                     }
-                }
-                catch (OdbcException ex)
-                {
-                    throw ex;
                 }
             }
+        }
+        public void UpdateSyncMasterTable(OdbcConnection connection, OdbcTransaction transaction)
+        {
+            try
+            {
+                connection.Open();
+                string sql = "UPDATE [Temp Master Party Contract] "
+                            + "	SET [Synced] = 1 "
+                            + "WHERE PartyType = 'User' AND "
+                            + "	  PartyCode IN (SELECT PartyCode "
+                            + "					FROM [Temp Master Party Contract] "
+                            + "					WHERE [Synced] = 0 AND "
+                            + "						  [PartyType] = 'User' "
+                            + "					GROUP BY PartyCode) ";
+                var command = new OdbcCommand(sql, connection);
+                command.Transaction = transaction;
+                int rows = command.ExecuteNonQuery();
+            }
+            catch (OdbcException ex)
+            {
+                throw ex;
+            }
+        }
+        public List<MasterOwnedPartyContract> buildMasterObject(OdbcConnection connection, OdbcTransaction transaction)
+        {
+            List<MasterOwnedPartyContract> userUpdates = new List<MasterOwnedPartyContract>();
+            try
+            {
+                connection.Open();
+                string sql = "SELECT PartyCode "
+                            + "FROM [Temp Master Party Contract] "
+                            + "WHERE [Synced] = 0 AND "
+                            + "	  [PartyType] = 'User' "
+                            + "GROUP BY PartyCode ";
+                var command = new OdbcCommand(sql, connection);
+                command.Transaction = transaction;
+                var reader = command.ExecuteReader();
+                if (reader.HasRows)
+                {
+                    while (reader.Read())
+                    {
+                        using (var connectionAcc = new OdbcConnection(connection.ConnectionString))
+                        {
+                            try
+                            {
+                                connectionAcc.Open();
+                                string sqlAcc = "SELECT T1.*, " +
+                                                "       T2.[Account Name] " +
+                                                "FROM [User] T1 " +
+                                                "   LEFT JOIN [Customer] T2 ON " +
+                                                "       T1.[Account No] = T2.[Account No] " +
+                                                "WHERE [User Name] = '" + reader["PartyCode"].ToString() + "'";
+                                var commandAcc = new OdbcCommand(sqlAcc, connectionAcc);
+                                var readerAcc = commandAcc.ExecuteReader();
+                                while (readerAcc.Read())
+                                {
+                                    MasterOwnedPartyContract user = new MasterOwnedPartyContract();
+                                    int accountNoIndex = readerAcc.GetOrdinal("Account No");
+                                    if (!readerAcc.IsDBNull(accountNoIndex))
+                                    {
+                                        user.ParentPartyCode = readerAcc["Account No"].ToString();
+                                        user.ParentPartyType = "Customer";
+                                        user.ParentPartyFullName = readerAcc["Account Name"].ToString();
+                                    }
+                                    else
+                                    {
+                                        user.ParentPartyCode = null;
+                                        user.ParentPartyType = null;
+                                        user.ParentPartyFullName = null;
+                                    }
+                                    user.PartyCode = readerAcc["User Name"].ToString();
+                                    user.PartyType = "User";
+                                    user.PartyFullName = readerAcc["First Name"].ToString() + " " + readerAcc["Surname"].ToString();
+                                    user.PartyPrimaryContactFullName = readerAcc["First Name"].ToString() + " " + readerAcc["Surname"].ToString();
+                                    user.PartyPrimaryTelephoneNumber = readerAcc["Telephone No"].ToString();
+                                    user.PartyPrimaryCellNumber = readerAcc["Cell Phone No"].ToString();
+                                    user.IsActive = true;
+                                    userUpdates.Add(user);
+                                }
+                            }
+                            catch (OdbcException ex)
+                            {
+                                throw ex;
+                            }
+                        }
+                    }
+                    return userUpdates;
+                }
+                else
+                {
+                    return new List<MasterOwnedPartyContract>();
+                }
+            }
+            catch (OdbcException ex)
+            {
+                throw ex;
+            }
+            
         }
     }
 }

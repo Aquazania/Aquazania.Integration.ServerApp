@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using HTTPServer.Factory.MasterPartyContract;
 using HTTPServer.Factory.MasterLinkedPartyContract;
+using Aquazania.Integration.ServerApp.PostCallHistoryEntryContract;
 
 namespace HTTPServer.Controllers
 {
@@ -37,6 +38,11 @@ namespace HTTPServer.Controllers
         [HttpPost(nameof(PostCallHistoryEntry))]
         public IActionResult PostCallHistoryEntry([FromBody] List<CallHistoryEntryContract> callHistories)
         {
+            int rows = 0;
+            foreach (var callResult in callHistories)
+            {
+                rows += CallHistoryEntry.RecordHistory(callResult);
+            }
             return Content("Not Implemented Yet", "application/json");
         }
     }

@@ -14,7 +14,6 @@ namespace HTTPServer.Client
         public async Task<HttpResponseMessage> SendAsync(object data, string url)
         {
             string payload = JsonConvert.SerializeObject(data);
-            // Create an instance of the StringContent class to hold the JSON payload
             var content = new StringContent(payload, Encoding.UTF8, "application/json");
             HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, url)
             {

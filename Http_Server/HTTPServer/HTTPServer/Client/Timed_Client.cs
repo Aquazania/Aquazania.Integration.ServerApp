@@ -1,4 +1,5 @@
-﻿using Aquazania.Integration.ServerApp.Client.Consumable;
+﻿using Aquazania.Integration.ServerApp.Client;
+using Aquazania.Integration.ServerApp.Client.Consumable;
 using Aquazania.Integration.ServerApp.Client.Contact;
 using Aquazania.Integration.ServerApp.Client.Contract;
 using Aquazania.Integration.ServerApp.Client.DeliveryAddress;
@@ -45,43 +46,38 @@ namespace HTTPServer.Client
 
         private void CallBackFunctions(object state)
         {
-            MasterContactParty contactmaster = new MasterContactParty(_darielURL);
-            contactmaster.SendMasterContactParty(_httpClient, _DTS_connectionString);
-            MasterContactLinkedParty contactlinkedparty = new MasterContactLinkedParty(_darielURLContact);
-            contactlinkedparty.SendMasterContactLinkedParty(_httpClient, _COM_connectionString);
+            List<IMasterParty> masterParties = new List<IMasterParty>()
+            {
+                new MasterContactParty(_darielURL),
+                new MasterContractParty(_darielURL),
+                new MasterCustomerParty(_darielURL),
+                new MasterDeliveryAddressParty(_darielURL),
+                new MasterSupplierParty(_darielURL),
+                new MasterSupplierDeliveryAddressParty(_darielURL),
+                new MasterUserParty(_darielURL),
+                new MasterConsumableParty(_darielURL)
+            };
 
-            MasterContractParty contractmaster = new MasterContractParty(_darielURL);
-            contractmaster.SendMasterContractParty(_httpClient, _DTS_connectionString);
-            MasterContractLinkedParty contractlinkedparty = new MasterContractLinkedParty(_darielURLContact);
-            contractlinkedparty.SendMasterContractLinkedParty(_httpClient, _COM_connectionString);  
+            List<IMasterLinkedParty> masterLinkedParties = new List<IMasterLinkedParty>()
+            {
+                new MasterContactLinkedParty(_darielURLContact),
+                new MasterContractLinkedParty(_darielURLContact),
+                new MasterCustomerLinkedParty(_darielURLContact),
+                new MasterDeliveryAddressLinkedParty(_darielURLContact),
+                new MasterSupplierLinkedParty(_darielURLContact),
+                new MasterSupplierDeliveryAddressLinkedParty(_darielURLContact),
+                new MasterUserLinkedParty(_darielURLContact)
+            };
 
-            MasterCustomerParty customermaster = new MasterCustomerParty(_darielURL); 
-            customermaster.SendMasterCustomerParty(_httpClient, _DTS_connectionString);
-            MasterCustomerLinkedParty customerlinkedParty = new MasterCustomerLinkedParty(_darielURLContact);
-            customerlinkedParty.SendMasterCustomerLinkedParty(_httpClient, _COM_connectionString);
+            foreach (IMasterParty party in masterParties)
+            {
+                party.SendMasterParty(_httpClient, _DTS_connectionString);
+            }
 
-            MasterDeliveryAddressParty deliveryAddressMaster = new MasterDeliveryAddressParty(_darielURL);
-            deliveryAddressMaster.SendMasterDeliveryAddressParty(_httpClient, _DTS_connectionString);
-            MasterDeliveryAddressLinkedParty deliveryAddressLinkedMaster = new MasterDeliveryAddressLinkedParty(_darielURLContact); 
-            deliveryAddressLinkedMaster.SendMasterDeliveryAddressLinkedParty(_httpClient, _COM_connectionString);
-
-            MasterSupplierParty supplierMaster = new MasterSupplierParty(_darielURL);
-            supplierMaster.SendMasterSupplierParty(_httpClient, _DTS_connectionString);
-            MasterSupplierLinkedParty supplierLinkedParty = new MasterSupplierLinkedParty(_darielURLContact);
-            supplierLinkedParty.SendMasterSupplierLinkedParty(_httpClient, _COM_connectionString);
-
-            MasterSupplierDeliveryAddressParty masterSupplierDeliveryAddress = new MasterSupplierDeliveryAddressParty(_darielURL);
-            masterSupplierDeliveryAddress.SendMasterDeliveryAddressParty( _httpClient, _DTS_connectionString);
-            MasterSupplierDeliveryAddressLinkedParty masterSupplierDeliveryAddressLinkedParty = new MasterSupplierDeliveryAddressLinkedParty(_darielURLContact); 
-            masterSupplierDeliveryAddressLinkedParty.SendMasterDeliveryAddressLinkedParty( _httpClient, _COM_connectionString);
-
-            MasterUserParty masterUserParty = new MasterUserParty(_darielURL);
-            masterUserParty.SendMasterUserParty( _httpClient, _DTS_connectionString);
-            MasterUserLinkedParty masterUserLinkedParty = new MasterUserLinkedParty(_darielURLContact);
-            masterUserLinkedParty.SendMasterUserLinkedParty( _httpClient, _COM_connectionString);
-
-            MasterConsumableParty masterConsumableParty = new MasterConsumableParty(_darielURL);
-            masterConsumableParty.SendMasterConsumableParty( _httpClient, _DTS_connectionString);
+            foreach (IMasterLinkedParty linkedParty in masterLinkedParties)
+            {
+                linkedParty.SendMasterLinkedParty(_httpClient, _COM_connectionString);
+            }
         }
     }
 }
