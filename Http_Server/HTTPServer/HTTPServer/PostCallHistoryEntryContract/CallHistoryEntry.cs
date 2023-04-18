@@ -4,7 +4,6 @@ namespace Aquazania.Integration.ServerApp.PostCallHistoryEntryContract
 {
     public class CallHistoryEntry
     {
-        private static string _DTS_connectionString;
         public static int RecordHistory(CallHistoryEntryContract callresult)
         {
             var configuration = new ConfigurationBuilder()
@@ -12,7 +11,7 @@ namespace Aquazania.Integration.ServerApp.PostCallHistoryEntryContract
                 .AddJsonFile("appsettings.json", optional: true)
                 .Build();
 
-            _DTS_connectionString = configuration.GetConnectionString("DTS_Connection");
+            string _DTS_connectionString = configuration.GetConnectionString("DTS_Connection");
 
             return 0;
         }

@@ -33,7 +33,6 @@ namespace Aquazania.Integration.ServerApp.Client.Contact
                                 LogUnsuccessfulRequest(_DTS_connectionString, data, response);
                             }
                         }
-
                         transaction.Commit();
                     }
                     catch (Exception ex)

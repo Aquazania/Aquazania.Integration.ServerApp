@@ -6,6 +6,7 @@ using Newtonsoft.Json.Linq;
 using HTTPServer.Factory.MasterPartyContract;
 using HTTPServer.Factory.MasterLinkedPartyContract;
 using Aquazania.Integration.ServerApp.PostCallHistoryEntryContract;
+using Aquazania.Integration.ServerApp.UserExtension;
 
 namespace HTTPServer.Controllers
 {
@@ -44,6 +45,23 @@ namespace HTTPServer.Controllers
                 rows += CallHistoryEntry.RecordHistory(callResult);
             }
             return Content("Not Implemented Yet", "application/json");
+        }
+
+        [HttpPost(nameof(PostUserExtention))]
+        public IActionResult PostUserExtention([FromBody] List<UserContract> Users)
+        {
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+                .AddJsonFile("appsettings.json", optional: true)
+                .Build();
+
+            int rows = 0;
+            foreach (var User in Users)
+            {
+                rows += 1;
+                new UserExtension(configuration, User);
+            }
+            return Content("Successful Update Of " + rows + " Users", "application/json");
         }
     }
 }
