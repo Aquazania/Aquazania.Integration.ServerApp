@@ -28,6 +28,10 @@ namespace HTTPServer.Client.Customer
                             {
                                 UpdateSyncLinkMasterTable(connection, transaction);
                             }
+                            else
+                            {
+                                LogUnsuccessfulRequest(_COM_connectionString, data, response);
+                            }
                         }
 
                         transaction.Commit();
@@ -40,7 +44,6 @@ namespace HTTPServer.Client.Customer
                 }
             }
         }
-
         public void UpdateSyncLinkMasterTable(OdbcConnection connection, OdbcTransaction transaction)
         {
             try
@@ -119,6 +122,35 @@ namespace HTTPServer.Client.Customer
                 throw ex;
             }
             
+        }
+        public void LogUnsuccessfulRequest(string _COM_connectionString, List<MasterOwnedLinkedContactContract> payload, HttpResponseMessage response)
+        {
+            using (var connectionAcc = new OdbcConnection(_COM_connectionString))
+            {
+                try
+                {
+                    string payloadJSON = JsonConvert.SerializeObject(payload);
+                    string sql = "INSERT INTO  [Temp Failed Requests] ([Payload Sent] "
+                               + "			   						  ,[Time Sent] "
+                               + "			   						  ,[Dealt With] "
+                               + "                                    ,[Party Type] "
+                               + "                                    ,[Response] "
+                               + "                                    ,[Response Detail])"
+                               + ""
+                               + "SELECT '" + payloadJSON + "', "
+                               + "	     '" + DateTime.Now + "', "
+                               + "	     0 "
+                               + "       'Customer' "
+                               + "       " + response.StatusCode + ", "
+                               + "       '" + response.Content.ToString() + "'";
+                    var command = new OdbcCommand(sql, connectionAcc);
+                    int rows = command.ExecuteNonQuery();
+                }
+                catch (OdbcException ex)
+                {
+                    throw ex;
+                }
+            }
         }
     }
 }

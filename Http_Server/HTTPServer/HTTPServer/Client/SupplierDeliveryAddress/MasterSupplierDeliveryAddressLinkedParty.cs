@@ -1,5 +1,6 @@
 ﻿using Aquazania.Telephony.Integration.Models;
 using HTTPServer.Client;
+using Newtonsoft.Json;
 using System.Data.Odbc;
 
 namespace Aquazania.Integration.ServerApp.Client.SupplierDeliveryAddress
@@ -26,6 +27,10 @@ namespace Aquazania.Integration.ServerApp.Client.SupplierDeliveryAddress
                             {
                                 UpdateSyncLinkMasterTable(connection, transaction);
                             }
+                            else
+                            {
+                                LogUnsuccessfulRequest(_COM_connectionString, data, response);
+                            }
                         }
 
                         transaction.Commit();
@@ -38,7 +43,6 @@ namespace Aquazania.Integration.ServerApp.Client.SupplierDeliveryAddress
                 }
             }
         }
-
         public void UpdateSyncLinkMasterTable(OdbcConnection connection, OdbcTransaction transaction)
         {
             try
@@ -117,6 +121,35 @@ namespace Aquazania.Integration.ServerApp.Client.SupplierDeliveryAddress
                 throw ex;
             }
             
+        }
+        public void LogUnsuccessfulRequest(string _COM_connectionString, List<MasterOwnedLinkedContactContract> payload, HttpResponseMessage response)
+        {
+            using (var connectionAcc = new OdbcConnection(_COM_connectionString))
+            {
+                try
+                {
+                    string payloadJSON = JsonConvert.SerializeObject(payload);
+                    string sql = "INSERT INTO  [Temp Failed Requests] ([Payload Sent] "
+                               + "			   						  ,[Time Sent] "
+                               + "			   						  ,[Dealt With] "
+                               + "                                    ,[Party Type] "
+                               + "                                    ,[Response] "
+                               + "                                    ,[Response Detail])"
+                               + ""
+                               + "SELECT '" + payloadJSON + "', "
+                               + "	     '" + DateTime.Now + "', "
+                               + "	     0 "
+                               + "       'SupplierDeliveryAddress' "
+                               + "       " + response.StatusCode + ", "
+                               + "       '" + response.Content.ToString() + "'";
+                    var command = new OdbcCommand(sql, connectionAcc);
+                    int rows = command.ExecuteNonQuery();
+                }
+                catch (OdbcException ex)
+                {
+                    throw ex;
+                }
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Aquazania.Telephony.Integration.Models;
 using HTTPServer.Client;
+using Newtonsoft.Json;
 using System.Data.Odbc;
 
 namespace Aquazania.Integration.ServerApp.Client.User
@@ -25,6 +26,10 @@ namespace Aquazania.Integration.ServerApp.Client.User
                             if (response.IsSuccessStatusCode)
                             {
                                 UpdateSyncLinkMasterTable(connection, transaction);
+                            }
+                            else
+                            {
+                                LogUnsuccessfulRequest(_COM_connectionString, data, response);
                             }
                         }
 
@@ -114,6 +119,35 @@ namespace Aquazania.Integration.ServerApp.Client.User
             catch (OdbcException ex)
             {
                 throw ex;
+            }
+        }
+        public void LogUnsuccessfulRequest(string _COM_connectionString, List<MasterOwnedLinkedContactContract> payload, HttpResponseMessage response)
+        {
+            using (var connectionAcc = new OdbcConnection(_COM_connectionString))
+            {
+                try
+                {
+                    string payloadJSON = JsonConvert.SerializeObject(payload);
+                    string sql = "INSERT INTO  [Temp Failed Requests] ([Payload Sent] "
+                               + "			   						  ,[Time Sent] "
+                               + "			   						  ,[Dealt With] "
+                               + "                                    ,[Party Type] "
+                               + "                                    ,[Response] "
+                               + "                                    ,[Response Detail])"
+                               + ""
+                               + "SELECT '" + payloadJSON + "', "
+                               + "	     '" + DateTime.Now + "', "
+                               + "	     0 "
+                               + "       'User' "
+                               + "       " + response.StatusCode + ", "
+                               + "       '" + response.Content.ToString() + "'";
+                    var command = new OdbcCommand(sql, connectionAcc);
+                    int rows = command.ExecuteNonQuery();
+                }
+                catch (OdbcException ex)
+                {
+                    throw ex;
+                }
             }
         }
     }
