@@ -33,12 +33,10 @@ namespace HTTPServer.Client
             _darielURL = configuration.GetSection("darielURL").Value;
             _darielURLContact = configuration.GetSection("darielURLContact").Value;
         }
-
         public void StartTimer()
         {
             _timer = new Timer(CallBackFunctions, null, TimeSpan.Zero, TimeSpan.FromMinutes(30));
         }
-
         private async void CallBackFunctions(object state)
         {
             List<IMasterParty> masterParties = new List<IMasterParty>()

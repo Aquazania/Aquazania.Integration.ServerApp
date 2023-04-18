@@ -6,5 +6,6 @@ namespace Aquazania.Integration.ServerApp.Client.UserExtension
 {
     public class UserExtensionContract
     {
+
     }
 }
