@@ -2,7 +2,7 @@
 using System.Data.Odbc;
 using System.IO;
 
-namespace Aquazania.Integration.ServerApp.UserExtension
+namespace Aquazania.Integration.ServerApp.UserExtensionContract
 {
     public class UserExtension
     {
