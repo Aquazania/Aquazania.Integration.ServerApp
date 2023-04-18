@@ -42,7 +42,6 @@ namespace Aquazania.Integration.ServerApp.Client.Consumable
         {
             try
             {
-                connection.Open();
                 string sql = "UPDATE [Temp Master Party Contract] "
                             + "	SET [Synced] = 1 "
                             + "WHERE PartyType = 'Consumables' AND "
@@ -65,15 +64,14 @@ namespace Aquazania.Integration.ServerApp.Client.Consumable
             List<MasterOwnedPartyContract> ConsumablesUpdates = new List<MasterOwnedPartyContract>();
             try
             {
-                connection.Open();
                 string sql = "SELECT PartyCode "
                             + "FROM [Temp Master Party Contract] "
                             + "WHERE [Synced] = 0 AND "
                             + "	  [PartyType] = 'Consumables' "
                             + "GROUP BY PartyCode ";
                 var command = new OdbcCommand(sql, connection);
-                var reader = command.ExecuteReader();
                 command.Transaction = transaction;
+                var reader = command.ExecuteReader();
                 if (reader.HasRows)
                 {
                     while (reader.Read())

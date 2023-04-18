@@ -42,7 +42,6 @@ namespace Aquazania.Integration.ServerApp.Client.User
         {
             try
             {
-                connection.Open();
                 string sql = "UPDATE [Temp Master Party Contract] "
                             + "	SET [Synced] = 1 "
                             + "WHERE PartyType = 'User' AND "
@@ -65,7 +64,6 @@ namespace Aquazania.Integration.ServerApp.Client.User
             List<MasterOwnedLinkedContactContract> userUpdates = new List<MasterOwnedLinkedContactContract>();
             try
             {
-                connection.Open();
                 string sql = "SELECT PartyCode "
                             + "FROM [Temp Master Party Contract] "
                             + "WHERE [Synced] = 0 AND "

@@ -42,8 +42,7 @@ namespace Aquazania.Integration.ServerApp.Client.Contact
         public void UpdateSyncLinkMasterTable(OdbcConnection connection, OdbcTransaction transaction)
         {
             try
-            {
-                connection.Open();
+            { 
                 string sql = "UPDATE [Temp Master Party Contract] "
                             + "	SET [Synced] = 1 "
                             + "WHERE PartyType = 'Contact' AND "
@@ -65,13 +64,13 @@ namespace Aquazania.Integration.ServerApp.Client.Contact
             List<MasterOwnedLinkedContactContract> contactUpdates = new List<MasterOwnedLinkedContactContract>();
             try
             {
-                connection.Open();
                 string sql = "SELECT PartyCode "
                             + "FROM [Temp Master Party Contract] "
                             + "WHERE [Synced] = 0 AND "
                             + "	    [PartyType] = 'Contact' "
                             + "GROUP BY PartyCode ";
                 var command = new OdbcCommand(sql, connection);
+                command.Transaction = transaction;
                 var reader = command.ExecuteReader();
                 if (reader.HasRows)
                 {

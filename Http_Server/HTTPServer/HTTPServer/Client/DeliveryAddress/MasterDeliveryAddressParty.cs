@@ -43,7 +43,6 @@ namespace Aquazania.Integration.ServerApp.Client.DeliveryAddress
         {
             try
             {
-                connection.Open();
                 string sql = "UPDATE [Temp Master Party Contract] "
                             + "	SET [Synced] = 1 "
                             + "WHERE PartyType = 'DeliveryAddress' AND "
@@ -66,7 +65,6 @@ namespace Aquazania.Integration.ServerApp.Client.DeliveryAddress
             List<MasterOwnedPartyContract> DeliveryAddressUpdates = new List<MasterOwnedPartyContract>();
             try
             {
-                connection.Open();
                 string sql = "SELECT PartyCode "
                             + "FROM [Temp Master Party Contract] "
                             + "WHERE [Synced] = 0 AND "
