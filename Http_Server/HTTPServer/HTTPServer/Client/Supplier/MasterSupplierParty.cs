@@ -1,5 +1,6 @@
 ﻿using Aquazania.Telephony.Integration.Models;
 using HTTPServer.Client;
+using Newtonsoft.Json;
 using System.Data.Odbc;
 
 namespace Aquazania.Integration.ServerApp.Client.Supplier
@@ -17,7 +18,7 @@ namespace Aquazania.Integration.ServerApp.Client.Supplier
                 {
                     try
                     {
-                        var data = buildMasterObject(connection, transaction);
+                        var data = buildMasterObject(connection, transaction, _DTS_connectionString);
                         if (data.Count > 0)
                         {
                             var response = await _httpClient.SendAsync(data, darielURL);
@@ -25,6 +26,10 @@ namespace Aquazania.Integration.ServerApp.Client.Supplier
                             if (response.IsSuccessStatusCode)
                             {
                                 UpdateSyncMasterTable(connection, transaction);
+                            }
+                            else
+                            {
+                                LogUnsuccessfulRequest(_DTS_connectionString, data, response);
                             }
                         }
 
@@ -59,7 +64,7 @@ namespace Aquazania.Integration.ServerApp.Client.Supplier
                 throw ex;
             }
         }
-        public List<MasterOwnedPartyContract> buildMasterObject(OdbcConnection connection, OdbcTransaction transaction)
+        public List<MasterOwnedPartyContract> buildMasterObject(OdbcConnection connection, OdbcTransaction transaction, string _DTS_connectionString)
         {
             List<MasterOwnedPartyContract> SupplierUpdates = new List<MasterOwnedPartyContract>();
             try
@@ -76,7 +81,7 @@ namespace Aquazania.Integration.ServerApp.Client.Supplier
                 {
                     while (reader.Read())
                     {
-                        using (var connectionAcc = new OdbcConnection(connection.ConnectionString))
+                        using (var connectionAcc = new OdbcConnection(_DTS_connectionString))
                         {
                             try
                             {
@@ -131,6 +136,35 @@ namespace Aquazania.Integration.ServerApp.Client.Supplier
             catch (OdbcException ex)
             {
                 throw ex;
+            }
+        }
+        public void LogUnsuccessfulRequest(string _DTS_connectionString, List<MasterOwnedPartyContract> payload, HttpResponseMessage response)
+        {
+            using (var connectionAcc = new OdbcConnection(_DTS_connectionString))
+            {
+                try
+                {
+                    string payloadJSON = JsonConvert.SerializeObject(payload);
+                    string sql = "INSERT INTO  [Temp Failed Requests] ([Payload Sent] "
+                               + "			   						  ,[Time Sent] "
+                               + "			   						  ,[Dealt With] "
+                               + "                                    ,[Party Type] "
+                               + "                                    ,[Response] "
+                               + "                                    ,[Response Detail])"
+                               + ""
+                               + "SELECT '" + payloadJSON + "', "
+                               + "	     '" + DateTime.Now + "', "
+                               + "	     0 "
+                               + "       'Supplier' "
+                               + "       " + response.StatusCode + ", "
+                               + "       '" + response.Content.ToString() + "'";
+                    var command = new OdbcCommand(sql, connectionAcc);
+                    int rows = command.ExecuteNonQuery();
+                }
+                catch (OdbcException ex)
+                {
+                    throw ex;
+                }
             }
         }
     }
