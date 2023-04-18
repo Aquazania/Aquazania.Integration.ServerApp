@@ -6,13 +6,8 @@ using Aquazania.Integration.ServerApp.Client.DeliveryAddress;
 using Aquazania.Integration.ServerApp.Client.Supplier;
 using Aquazania.Integration.ServerApp.Client.SupplierDeliveryAddress;
 using Aquazania.Integration.ServerApp.Client.User;
-using Aquazania.Telephony.Integration.Models;
 using HTTPServer.Client.Customer;
-using Newtonsoft.Json;
-using System.Data.Odbc;
-using System.Diagnostics.Contracts;
-using System.Net.Http;
-using System.Text;
+
 
 namespace HTTPServer.Client
 {

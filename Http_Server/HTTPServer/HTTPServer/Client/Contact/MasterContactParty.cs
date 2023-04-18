@@ -145,7 +145,7 @@ namespace Aquazania.Integration.ServerApp.Client.Contact
                                + "	     0, "
                                + "       'Contact', "
                                + "       " + (int)response.StatusCode + ", "
-                               + "       '" + failedContracts + "'";
+                               + "       '" + failedContracts.Replace("'", "''") + "'";
                     var command = new OdbcCommand(sql, connectionAcc);
                     int rows = command.ExecuteNonQuery();
                 }

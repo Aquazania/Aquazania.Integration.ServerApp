@@ -130,6 +130,7 @@ namespace HTTPServer.Client.Customer
             {
                 try
                 {
+                    connectionAcc.Open();
                     string payloadJSON = JsonConvert.SerializeObject(payload);
                     string sql = "INSERT INTO  [Temp Failed Requests] ([Payload Sent] "
                                + "			   						  ,[Time Sent] "
@@ -143,7 +144,7 @@ namespace HTTPServer.Client.Customer
                                + "	     0, "
                                + "       'Customer', "
                                + "       " + (int)response.StatusCode + ", "
-                               + "       '" + failedContracts + "'";
+                               + "       '" + failedContracts.Replace("'", "''") + "'";
                     var command = new OdbcCommand(sql, connectionAcc);
                     int rows = command.ExecuteNonQuery();
                 }

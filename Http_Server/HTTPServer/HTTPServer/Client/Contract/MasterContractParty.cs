@@ -144,6 +144,7 @@ namespace Aquazania.Integration.ServerApp.Client.Contract
             {
                 try
                 {
+                    connectionAcc.Open();
                     string payloadJSON = JsonConvert.SerializeObject(payload);
                     string sql = "INSERT INTO  [Temp Failed Requests] ([Payload Sent] "
                                + "			   						  ,[Time Sent] "
@@ -157,7 +158,7 @@ namespace Aquazania.Integration.ServerApp.Client.Contract
                                + "	     0, "
                                + "       'Contract', "
                                + "       " + (int)response.StatusCode + ", "
-                               + "       '" + failedContracts + "'";
+                               + "       '" + failedContracts.Replace("'", "''") + "'";
                     var command = new OdbcCommand(sql, connectionAcc);
                     int rows = command.ExecuteNonQuery();
                 }

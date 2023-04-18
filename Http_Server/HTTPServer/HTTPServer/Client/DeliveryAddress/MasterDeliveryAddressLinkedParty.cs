@@ -128,6 +128,7 @@ namespace Aquazania.Integration.ServerApp.Client.DeliveryAddress
             {
                 try
                 {
+                    connectionAcc.Open();
                     string payloadJSON = JsonConvert.SerializeObject(payload);
                     string sql = "INSERT INTO  [Temp Failed Requests] ([Payload Sent] "
                                + "			   						  ,[Time Sent] "
@@ -141,7 +142,7 @@ namespace Aquazania.Integration.ServerApp.Client.DeliveryAddress
                                + "	     0, "
                                + "       'DeliveryAddress', "
                                + "       " + (int)response.StatusCode + ", "
-                               + "       '" + message + "'";
+                               + "       '" + message.Replace("'", "''") + "'";
                     var command = new OdbcCommand(sql, connectionAcc);
                     int rows = command.ExecuteNonQuery();
                 }
