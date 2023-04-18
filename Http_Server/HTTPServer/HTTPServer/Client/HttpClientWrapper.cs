@@ -20,7 +20,6 @@ namespace HTTPServer.Client
                 Content = content
             };
             return await _httpClient.SendAsync(message).ConfigureAwait(false);
-
         }
     }
 }

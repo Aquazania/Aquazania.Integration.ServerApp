@@ -9,7 +9,7 @@ namespace Aquazania.Integration.ServerApp.Client.Supplier
     {
         public MasterSupplierParty(string url) { darielURL = url; }
         private string darielURL;
-        public async void SendMasterParty(ITimed_Client _httpClient, string _DTS_connectionString)
+        public async Task SendMasterParty(ITimed_Client _httpClient, string _DTS_connectionString)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
             {
@@ -22,14 +22,14 @@ namespace Aquazania.Integration.ServerApp.Client.Supplier
                         if (data.Count > 0)
                         {
                             var response = await _httpClient.SendAsync(data, darielURL);
-
+                            string message = await response.Content.ReadAsStringAsync();
                             if (response.IsSuccessStatusCode)
                             {
                                 UpdateSyncMasterTable(connection, transaction);
                             }
                             else
                             {
-                                LogUnsuccessfulRequest(_DTS_connectionString, data, response);
+                                LogUnsuccessfulRequest(_DTS_connectionString, data, response, message);
                             }
                         }
 
@@ -138,7 +138,7 @@ namespace Aquazania.Integration.ServerApp.Client.Supplier
                 throw ex;
             }
         }
-        public void LogUnsuccessfulRequest(string _DTS_connectionString, List<MasterOwnedPartyContract> payload, HttpResponseMessage response)
+        public void LogUnsuccessfulRequest(string _DTS_connectionString, List<MasterOwnedPartyContract> payload, HttpResponseMessage response, string failedContracts)
         {
             using (var connectionAcc = new OdbcConnection(_DTS_connectionString))
             {
@@ -154,10 +154,10 @@ namespace Aquazania.Integration.ServerApp.Client.Supplier
                                + ""
                                + "SELECT '" + payloadJSON + "', "
                                + "	     '" + DateTime.Now + "', "
-                               + "	     0 "
-                               + "       'Supplier' "
-                               + "       " + response.StatusCode + ", "
-                               + "       '" + response.Content.ToString() + "'";
+                               + "	     0, "
+                               + "       'Supplier', "
+                               + "       " + (int)response.StatusCode + ", "
+                               + "       '" + failedContracts + "'";
                     var command = new OdbcCommand(sql, connectionAcc);
                     int rows = command.ExecuteNonQuery();
                 }

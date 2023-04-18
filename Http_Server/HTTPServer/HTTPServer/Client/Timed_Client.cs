@@ -44,7 +44,7 @@ namespace HTTPServer.Client
             _timer = new Timer(CallBackFunctions, null, TimeSpan.Zero, TimeSpan.FromMinutes(30));
         }
 
-        private void CallBackFunctions(object state)
+        private async void CallBackFunctions(object state)
         {
             List<IMasterParty> masterParties = new List<IMasterParty>()
             {
@@ -71,12 +71,12 @@ namespace HTTPServer.Client
 
             foreach (IMasterParty party in masterParties)
             {
-                party.SendMasterParty(_httpClient, _DTS_connectionString);
+                await party.SendMasterParty(_httpClient, _DTS_connectionString);
             }
 
             foreach (IMasterLinkedParty linkedParty in masterLinkedParties)
             {
-                linkedParty.SendMasterLinkedParty(_httpClient, _COM_connectionString);
+                await linkedParty.SendMasterLinkedParty(_httpClient, _COM_connectionString);
             }
         }
     }

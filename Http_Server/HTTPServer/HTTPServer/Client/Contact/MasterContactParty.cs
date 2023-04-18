@@ -10,7 +10,7 @@ namespace Aquazania.Integration.ServerApp.Client.Contact
     {
         public MasterContactParty(string url) { darielURL = url; }
         private string darielURL;
-        public async void SendMasterParty(ITimed_Client _httpClient, string _DTS_connectionString)
+        public async Task SendMasterParty(ITimed_Client _httpClient, string _DTS_connectionString)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
             {
@@ -23,14 +23,14 @@ namespace Aquazania.Integration.ServerApp.Client.Contact
                         if (data.Count > 0)
                         {
                             var response = await _httpClient.SendAsync(data, darielURL);
-
+                            string message = await response.Content.ReadAsStringAsync();
                             if (response.IsSuccessStatusCode)
                             {
                                 UpdateSyncMasterTable(connection, transaction);
                             }
                             else
                             {
-                                LogUnsuccessfulRequest(_DTS_connectionString, data, response);
+                                LogUnsuccessfulRequest(_DTS_connectionString, data, response, message);
                             }
                         }
                         transaction.Commit();
@@ -125,12 +125,13 @@ namespace Aquazania.Integration.ServerApp.Client.Contact
                 throw ex;
             }
         }
-        public void LogUnsuccessfulRequest(string _DTS_connectionString, List<MasterOwnedPartyContract> payload, HttpResponseMessage response)
+        public void LogUnsuccessfulRequest(string _DTS_connectionString, List<MasterOwnedPartyContract> payload, HttpResponseMessage response, string failedContracts)
         {
             using (var connectionAcc = new OdbcConnection(_DTS_connectionString))
             {
                 try
                 {
+                    connectionAcc.Open();
                     string payloadJSON = JsonConvert.SerializeObject(payload);
                     string sql = "INSERT INTO  [Temp Failed Requests] ([Payload Sent] "
                                + "			   						  ,[Time Sent] "
@@ -141,10 +142,10 @@ namespace Aquazania.Integration.ServerApp.Client.Contact
                                + ""
                                + "SELECT '" + payloadJSON + "', "
                                + "	     '" + DateTime.Now + "', "
-                               + "	     0 "
-                               + "       'Contact' "
-                               + "       " + response.StatusCode + ", "
-                               + "       '" + response.Content.ToString() + "'";
+                               + "	     0, "
+                               + "       'Contact', "
+                               + "       " + (int)response.StatusCode + ", "
+                               + "       '" + failedContracts + "'";
                     var command = new OdbcCommand(sql, connectionAcc);
                     int rows = command.ExecuteNonQuery();
                 }
