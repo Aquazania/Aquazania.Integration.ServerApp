@@ -9,25 +9,23 @@ namespace HTTPServer.Controllers
     public class PartyController : ApiControllerBase
     {
         [HttpPost(nameof(PostParty))]
-        public IActionResult PostParty([FromBody] List<ChangedPartyContactContract> parties)
+        public async Task<IActionResult> PostParty([FromBody] List<ChangedPartyContactContract> parties)
         {
-            int rows = 0;
             foreach (var party in parties)
             {
                 var convertor = PartyFactory.Create(party);
-                rows = convertor.Convert(party);
+                await convertor.Convert(party);
             }
             return Content("Successfully recieved.", "application/json");
         }
 
         [HttpPost(nameof(PostLinkedParty))]
-        public IActionResult PostLinkedParty([FromBody] List<ChangedLinkedContactContract> parties)
+        public async Task<IActionResult> PostLinkedParty([FromBody] List<ChangedLinkedContactContract> parties)
         {
-            int rows = 0;
             foreach (var party in parties)
             {
                 var convertor = LinkedPartyFactory.Create(party);
-                rows += convertor.Convert(party);
+                await convertor.Convert(party);
             }
             return Content("Successfully recieved.", "application/json");
         }

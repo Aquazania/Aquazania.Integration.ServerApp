@@ -11,139 +11,140 @@ namespace Aquazania.Integration.ServerApp.Factory.MasterPartyContract.Impl
         {
             _DTS_connectionString = configuration.GetConnectionString("DTS_Connection");
         }
-        public int Convert(ChangedPartyContactContract party)
-        {
-            int rows = 0;
-            if (ValidateParty(party))
-            {
-                rows += UpdateRequired(party);
-            }
-            else
-            {
-                throw new KeyNotFoundException($"Code : {party.PartyCode} was not found within the database");
-            }
-            return rows;
-        }
-        public int PerformUpdate(string updatedField, string oldValue, string newValue, ChangedPartyContactContract party)
-        {
-            EnterHistoryRecord(updatedField, oldValue, newValue, party.PartyCode, party.User.UserName);
-
-            using (var connection = new OdbcConnection(_DTS_connectionString))
-            {
-                try
-                {
-                    connection.Open();
-                    string sql = "UPDATE [Consumables] "
-                               + "	SET [" + updatedField + "] = '" + newValue + "' "
-                               + "WHERE [Delivery Address Code] = '" + party.PartyCode + "'";
-                    var command = new OdbcCommand(sql, connection);
-                    return command.ExecuteNonQuery();
-                }
-                catch (OdbcException ex)
-                {
-                    throw ex;
-                }
-            }
-        }
-        public int UpdateRequired(ChangedPartyContactContract party)
+        public async Task Convert(ChangedPartyContactContract party)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
             {
-                try
+                await connection.OpenAsync();
+                using (var transaction = connection.BeginTransaction())
                 {
-                    int rows = 0;
-                    connection.Open();
-                    string sql = "SELECT * FROM [Consumables] WHERE [Delivery Address Code] = '" + party.PartyCode + "'";
-                    var command = new OdbcCommand(sql, connection);
-                    var reader = command.ExecuteReader();
-                    while (reader.Read())
+                    try
                     {
-                        if (party.PartyPrimaryContactFullName != reader["Consumables Contact Person"].ToString())
-                            rows += PerformUpdate("Consumables Contact Person",
-                                                  reader["Consumables Contact Person"].ToString(),
-                                                  party.PartyPrimaryContactFullName,
-                                                  party);
-                        if (party.PartyPrimaryTelephoneNumber != reader["Tel No For Consumables Contact Person"].ToString())
-                            rows += PerformUpdate("Tel No For Consumables Contact Person",
-                                                  reader["Tel No For Consumables Contact Person"].ToString(),
-                                                  party.PartyPrimaryTelephoneNumber,
-                                                  party);
-                        if (party.PartyPrimaryCellNumber != reader["Cell No For Consumables Contact Person"].ToString())
-                            rows += PerformUpdate("Cell No For Consumables Contact Person",
-                                                  reader["Cell No For Consumables Contact Person"].ToString(),
-                                                  party.PartyPrimaryCellNumber,
-                                                  party);
+                        int rows = 0;
+                        if (ValidateParty(party, connection, transaction))
+                        {
+                            rows += UpdateRequired(party, connection, transaction);
+                        }
+                        else
+                        {
+                            throw new KeyNotFoundException($"Code : {party.PartyCode} was not found within the database");
+                        }
+                        transaction.Commit();
                     }
-                    return rows;
-                }
-                catch (OdbcException ex)
-                {
-                    throw ex;
-                }
-            }
-        }
-        public bool ValidateParty(ChangedPartyContactContract party)
-        {
-            using (var connection = new OdbcConnection(_DTS_connectionString))
-            {
-                try
-                {
-                    connection.Open();
-                    string sql = "SELECT [Delivery Address Code] FROM [Consumables] WHERE [Delivery Address Code] = '" + party.PartyCode + "'";
-                    var command = new OdbcCommand(sql, connection);
-                    var reader = command.ExecuteReader();
-                    if (reader.HasRows)
+                    catch (Exception ex)
                     {
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
+                        transaction.Rollback();
+                        throw;
                     }
                 }
-                catch (OdbcException ex)
-                {
-                    throw ex;
-                }
             }
         }
-        public void EnterHistoryRecord(string updatedField, string oldValue, string newValue, string deliveryAddressCode, string userName)
+        public int PerformUpdate(string updatedField, string oldValue, string newValue, ChangedPartyContactContract party, OdbcConnection connection, OdbcTransaction transaction)
         {
-            using (var connection = new OdbcConnection(_DTS_connectionString))
+            EnterHistoryRecord(updatedField, oldValue, newValue, party.PartyCode, party.User.UserName, connection, transaction);
+            try
             {
-                try
+                string sql = "UPDATE [Consumables] "
+                            + "	SET [" + updatedField + "] = '" + newValue + "' "
+                            + "WHERE [Delivery Address Code] = '" + party.PartyCode + "'";
+                var command = new OdbcCommand(sql, connection);
+                command.Transaction = transaction;
+                return command.ExecuteNonQuery();
+            }
+            catch (OdbcException ex)
+            {
+                throw ex;
+            } 
+        }
+        public int UpdateRequired(ChangedPartyContactContract party, OdbcConnection connection, OdbcTransaction transaction)
+        {
+            try
+            {
+                int rows = 0;
+                string sql = "SELECT * FROM [Consumables] WHERE [Delivery Address Code] = '" + party.PartyCode + "'";
+                var command = new OdbcCommand(sql, connection);
+                command.Transaction = transaction;
+                var reader = command.ExecuteReader();
+                while (reader.Read())
                 {
-                    //Swap this around. take the update no from history and put this into one query and execute both 
-                    connection.Open();
-                    string sql = "DECLARE @UpdateNo INT "
-                               + "INSERT INTO [Update History] ([User Name] "
-                               + "							   ,[Requested By] "
-                               + "							   ,[Reference Type] "
-                               + "							   ,[Key Value] "
-                               + "							   ,[Date Stamp]) "
-                               + "SELECT '" + userName + "', "
-                               + "	     NULL, "
-                               + "	     14, "
-                               + "	     '" + deliveryAddressCode + "', "
-                               + "	     '" + DateTime.Now + "' "
-                               + "SELECT @UpdateNo = SCOPE_IDENTITY() "
-                               + "INSERT INTO [Update History Detail] ([Column Name], "
-                               + "								       [New Value], "
-                               + "									   [Old Value], "
-                               + "									   [Table Name], "
-                               + "									   [Update No]) "
-                               + "SELECT '" + updatedField + "', "
-                               + "	     '" + newValue + "', "
-                               + "	     '" + oldValue + "', "
-                               + "	     'Consumables', "
-                               + "	     @UpdateNo ";
-                    var command = new OdbcCommand(sql, connection);
-                    command.ExecuteNonQuery();
+                    if (party.PartyPrimaryContactFullName != reader["Consumables Contact Person"].ToString())
+                        rows += PerformUpdate("Consumables Contact Person",
+                                                reader["Consumables Contact Person"].ToString(),
+                                                party.PartyPrimaryContactFullName,
+                                                party, connection, transaction);
+                    if (party.PartyPrimaryTelephoneNumber != reader["Tel No For Consumables Contact Person"].ToString())
+                        rows += PerformUpdate("Tel No For Consumables Contact Person",
+                                                reader["Tel No For Consumables Contact Person"].ToString(),
+                                                party.PartyPrimaryTelephoneNumber,
+                                                party, connection, transaction);
+                    if (party.PartyPrimaryCellNumber != reader["Cell No For Consumables Contact Person"].ToString())
+                        rows += PerformUpdate("Cell No For Consumables Contact Person",
+                                                reader["Cell No For Consumables Contact Person"].ToString(),
+                                                party.PartyPrimaryCellNumber,
+                                                party, connection, transaction);
                 }
-                catch (OdbcException ex)
+                return rows;
+            }
+            catch (OdbcException ex)
+            {
+                throw ex;
+            }
+        }
+        public bool ValidateParty(ChangedPartyContactContract party, OdbcConnection connection, OdbcTransaction transaction)
+        {
+            try
+            {
+                string sql = "SELECT [Delivery Address Code] FROM [Consumables] WHERE [Delivery Address Code] = '" + party.PartyCode + "'";
+                var command = new OdbcCommand(sql, connection);
+                command.Transaction = transaction;
+                var reader = command.ExecuteReader();
+                if (reader.HasRows)
                 {
-                    throw ex;
+                    return true;
                 }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (OdbcException ex)
+            {
+                throw ex;
+            }
+        }
+        public void EnterHistoryRecord(string updatedField, string oldValue, string newValue, string deliveryAddressCode, string userName, OdbcConnection connection, OdbcTransaction transaction)
+        {
+            try
+            {
+                string sql = "DECLARE @UpdateNo INT "
+                            + "INSERT INTO [Update History] ([User Name] "
+                            + "							   ,[Requested By] "
+                            + "							   ,[Reference Type] "
+                            + "							   ,[Key Value] "
+                            + "							   ,[Date Stamp]) "
+                            + "SELECT '" + userName + "', "
+                            + "	     NULL, "
+                            + "	     14, "
+                            + "	     '" + deliveryAddressCode + "', "
+                            + "	     '" + DateTime.Now + "' "
+                            + "SELECT @UpdateNo = SCOPE_IDENTITY() "
+                            + "INSERT INTO [Update History Detail] ([Column Name], "
+                            + "								       [New Value], "
+                            + "									   [Old Value], "
+                            + "									   [Table Name], "
+                            + "									   [Update No]) "
+                            + "SELECT '" + updatedField + "', "
+                            + "	     '" + newValue + "', "
+                            + "	     '" + oldValue + "', "
+                            + "	     'Consumables', "
+                            + "	     @UpdateNo ";
+                var command = new OdbcCommand(sql, connection);
+                command.Transaction = transaction;
+                command.ExecuteNonQuery();
+            }
+            catch (OdbcException ex)
+            {
+                throw ex;
             }
         }
     }
