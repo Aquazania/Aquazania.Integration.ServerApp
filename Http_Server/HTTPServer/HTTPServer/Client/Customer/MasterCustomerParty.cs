@@ -3,6 +3,7 @@ using Aquazania.Telephony.Integration.Models;
 using Newtonsoft.Json;
 using System.Data.Odbc;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Transactions;
 
 namespace HTTPServer.Client.Customer
@@ -100,8 +101,8 @@ namespace HTTPServer.Client.Customer
                                     customer.PartyType = "Customer";
                                     customer.PartyFullName = readerAcc["Account Name"].ToString();
                                     customer.PartyPrimaryContactFullName = readerAcc["Creditors Clerk"].ToString();
-                                    customer.PartyPrimaryTelephoneNumber = readerAcc["Telephone No"].ToString();
-                                    customer.PartyPrimaryCellNumber = readerAcc["Cell Phone No"].ToString();
+                                    customer.PartyPrimaryTelephoneNumber = Regex.Replace(readerAcc["Telephone No"].ToString(), @"\D", "");
+                                    customer.PartyPrimaryCellNumber = Regex.Replace(readerAcc["Cell Phone No"].ToString(), @"\D", "");
                                     customer.IsActive = true;
                                     customerUpdates.Add(customer);
                                 }

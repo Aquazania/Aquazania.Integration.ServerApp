@@ -2,6 +2,7 @@
 using HTTPServer.Client;
 using Newtonsoft.Json;
 using System.Data.Odbc;
+using System.Text.RegularExpressions;
 
 namespace Aquazania.Integration.ServerApp.Client.DeliveryAddress
 {
@@ -98,7 +99,7 @@ namespace Aquazania.Integration.ServerApp.Client.DeliveryAddress
                                     DeliveryAddress.ParentPartyCode = readerAcc["DocumentReferenceCode"].ToString();
                                     DeliveryAddress.ParentPartyType = "DeliveryAddress";
                                     DeliveryAddress.ContactFullName = readerAcc["ContactName"].ToString() + " " + (!readerAcc.IsDBNull(readerAcc.GetOrdinal("ContactLastName")) ? readerAcc["ContactLastName"].ToString() : "");
-                                    DeliveryAddress.PhoneNumber = readerAcc["ContactPointValue"].ToString();
+                                    DeliveryAddress.PhoneNumber = Regex.Replace(readerAcc["ContactPointValue"].ToString(), @"\D", "");
                                     DeliveryAddress.IsActive = true;
                                     DeliveryAddressUpdates.Add(DeliveryAddress);
                                 }

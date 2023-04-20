@@ -2,6 +2,7 @@
 using HTTPServer.Client;
 using Newtonsoft.Json;
 using System.Data.Odbc;
+using System.Text.RegularExpressions;
 
 namespace Aquazania.Integration.ServerApp.Client.Consumable
 {
@@ -104,8 +105,8 @@ namespace Aquazania.Integration.ServerApp.Client.Consumable
                                     Consumable.PartyType = "Consumable";
                                     Consumable.PartyFullName = readerAcc["Account Name"].ToString();
                                     Consumable.PartyPrimaryContactFullName = readerAcc["Consumables Contact Person"].ToString();
-                                    Consumable.PartyPrimaryTelephoneNumber = readerAcc["Tel No For Consumables Contact Person"].ToString();
-                                    Consumable.PartyPrimaryCellNumber = readerAcc["Cell No For Consumables Contact Person"].ToString();
+                                    Consumable.PartyPrimaryTelephoneNumber = Regex.Replace(readerAcc["Tel No For Consumables Contact Person"].ToString(), @"\D", "");
+                                    Consumable.PartyPrimaryCellNumber = Regex.Replace(readerAcc["Cell No For Consumables Contact Person"].ToString(), @"\D", "");
                                     Consumable.IsActive = true;
                                     ConsumablesUpdates.Add(Consumable);
                                 }

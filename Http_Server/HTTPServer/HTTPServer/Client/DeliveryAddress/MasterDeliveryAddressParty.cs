@@ -2,6 +2,7 @@
 using HTTPServer.Client;
 using Newtonsoft.Json;
 using System.Data.Odbc;
+using System.Text.RegularExpressions;
 
 namespace Aquazania.Integration.ServerApp.Client.DeliveryAddress
 {
@@ -105,8 +106,8 @@ namespace Aquazania.Integration.ServerApp.Client.DeliveryAddress
                                     DeliveryAddress.PartyType = "DeliveryAddress";
                                     DeliveryAddress.PartyFullName = readerAcc["Delivery Address Line 2"].ToString() + " " + readerAcc["Delivery Address Line 3"].ToString();
                                     DeliveryAddress.PartyPrimaryContactFullName = readerAcc["Contact Person"].ToString();
-                                    DeliveryAddress.PartyPrimaryTelephoneNumber = readerAcc["Tel No For Contact Person"].ToString();
-                                    DeliveryAddress.PartyPrimaryCellNumber = readerAcc["Cell No For Contact Person"].ToString();
+                                    DeliveryAddress.PartyPrimaryTelephoneNumber = Regex.Replace(readerAcc["Tel No For Contact Person"].ToString(), @"\D", "");
+                                    DeliveryAddress.PartyPrimaryCellNumber = Regex.Replace(readerAcc["Cell No For Contact Person"].ToString(), @"\D", "");
                                     DeliveryAddress.IsActive = true;
                                     DeliveryAddressUpdates.Add(DeliveryAddress);
                                 }
@@ -129,7 +130,6 @@ namespace Aquazania.Integration.ServerApp.Client.DeliveryAddress
                 throw ex;
             }
         }
-
         public void LogUnsuccessfulRequest(string _DTS_connectionString, List<MasterOwnedPartyContract> payload, HttpResponseMessage response, string failedContracts)
         {
             using (var connectionAcc = new OdbcConnection(_DTS_connectionString))

@@ -11,7 +11,6 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
         {
             _DTS_connectionString = configuration.GetConnectionString("DTS_Connection");
         }
-
         public async Task Convert(ChangedPartyContactContract party)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
@@ -38,49 +37,6 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
                         throw;
                     }
                 }
-            }
-        }
-        public int DoInsert(ChangedPartyContactContract party, OdbcConnection connection, OdbcTransaction transaction)
-        {
-            try
-            {
-                string sql = "INSERT INTO [Contact] ([Contact Person] "
-                            + "					    ,[Company] "
-                            + "					    ,[Job Title] "
-                            + "					    ,[Address Line 1] "
-                            + "					    ,[Address Line 2] "
-                            + "					    ,[Suburb] "
-                            + "					    ,[Postal Code] "
-                            + "					    ,[Telephone No] "
-                            + "					    ,[Cell Phone No] "
-                            + "					    ,[Fax No] "
-                            + "					    ,[E-Mail Address] "
-                            + "					    ,[Note] "
-                            + "					    ,[Public Contact] "
-                            + "					    ,[Date Created] "
-                            + "					    ,[Created By]) "
-                            + "SELECT '" + party.PartyPrimaryContactFullName + "', "
-                            + "	     NULL, "
-                            + "	     NULL, "
-                            + "	     NULL, "
-                            + "	     NULL, "
-                            + "	     NULL, "
-                            + "	     NULL, "
-                            + "	     '" + party.PartyPrimaryTelephoneNumber + "', "
-                            + "	     '" + party.PartyPrimaryCellNumber + "', "
-                            + "	     NULL, "
-                            + "	     NULL, "
-                            + "	     NULL, "
-                            + "	     NULL, "
-                            + "	     '" + DateTime.Now + "', "
-                            + "	     '" + party.User.UserName + "'";
-                var command = new OdbcCommand(sql, connection);
-                command.Transaction = transaction;
-                return command.ExecuteNonQuery();
-            }
-            catch (OdbcException ex)
-            {
-                throw ex;
             }
         }
         public int PerformUpdate(string updatedField, string oldValue, string newValue, ChangedPartyContactContract party, OdbcConnection connection, OdbcTransaction transaction)
@@ -147,7 +103,7 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
                 }
                 else
                 {
-                    return  DoInsert(party, connection, transaction) > 0;
+                    return false;
                 }
             }
             catch (OdbcException ex)

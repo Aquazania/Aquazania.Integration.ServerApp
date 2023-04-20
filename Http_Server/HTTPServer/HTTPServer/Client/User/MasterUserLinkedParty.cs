@@ -2,6 +2,7 @@
 using HTTPServer.Client;
 using Newtonsoft.Json;
 using System.Data.Odbc;
+using System.Text.RegularExpressions;
 
 namespace Aquazania.Integration.ServerApp.Client.User
 {
@@ -97,8 +98,8 @@ namespace Aquazania.Integration.ServerApp.Client.User
                                     MasterOwnedLinkedContactContract user = new MasterOwnedLinkedContactContract();
                                     user.ParentPartyCode = readerAcc["DocumentReferenceCode"].ToString();
                                     user.ParentPartyType = "User";
-                                    user.ContactFullName = readerAcc["ContactName"].ToString() + " " + (!readerAcc.IsDBNull(readerAcc.GetOrdinal("ContactLastName")) ? readerAcc["ContactLastName"].ToString() : "");
-                                    user.PhoneNumber = readerAcc["ContactPointValue"].ToString();
+                                    user.ContactFullName = readerAcc["ContactName"].ToString() + " " + (!readerAcc.IsDBNull(readerAcc.GetOrdinal("ContactLastName")) ? readerAcc["ContactLastName"].ToString() : "");                                    
+                                    user.PhoneNumber = Regex.Replace(readerAcc["ContactPointValue"].ToString(), @"\D", "");
                                     user.IsActive = true;
                                     userUpdates.Add(user);
                                 }
