@@ -51,10 +51,13 @@ namespace Aquazania.Integration.ServerApp.Client.User
                             + "	SET [Synced] = 1 "
                             + "WHERE PartyType = 'User' AND "
                             + "	  PartyCode IN (SELECT PartyCode "
-                            + "					FROM [Temp Master Party Contract] "
-                            + "					WHERE [Synced] = 0 AND "
-                            + "						  [PartyType] = 'User' "
-                            + "					GROUP BY PartyCode) ";
+                            + "                 FROM [Temp Master Party Contract] T1 "
+                            + "                      INNER JOIN [User] T2 ON "
+                            + "                    [PartyCode] = [User Name] "
+                            + "                 WHERE T1.[Synced] = 0 AND "
+                            + "                 	  T1.[PartyType] = 'User' AND "
+                            + "                    T2.[PBX Extension] IS NULL "
+                            + "                 GROUP BY PartyCode)";
                 var command = new OdbcCommand(sql, connection);
                 command.Transaction = transaction;
                 int rows = command.ExecuteNonQuery();
@@ -70,9 +73,12 @@ namespace Aquazania.Integration.ServerApp.Client.User
             try
             {
                 string sql = "SELECT PartyCode "
-                            + "FROM [Temp Master Party Contract] "
-                            + "WHERE [Synced] = 0 AND "
-                            + "	  [PartyType] = 'User' "
+                            + "FROM [Temp Master Party Contract] T1 "
+                            + "     INNER JOIN [User] T2 ON "
+                            + "   [PartyCode] = [User Name] "
+                            + "WHERE T1.[Synced] = 0 AND "
+                            + "	  T1.[PartyType] = 'User' AND "
+                            + "   T2.[PBX Extension] IS NULL "
                             + "GROUP BY PartyCode ";
                 var command = new OdbcCommand(sql, connection);
                 command.Transaction = transaction;
@@ -137,7 +143,6 @@ namespace Aquazania.Integration.ServerApp.Client.User
             {
                 throw ex;
             }
-            
         }
         public void LogUnsuccessfulRequest(string _DTS_connectionString, List<MasterOwnedPartyContract> payload, HttpResponseMessage response, string failedContracts)
         {

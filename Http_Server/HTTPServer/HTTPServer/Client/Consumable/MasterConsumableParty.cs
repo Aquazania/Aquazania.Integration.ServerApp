@@ -88,22 +88,23 @@ namespace Aquazania.Integration.ServerApp.Client.Consumable
                             {
                                 connectionAcc.Open();
                                 string sqlAcc = "SELECT T1.*,  " +
-                                                "       T2.[Account Name]" +
+                                                "       T2.[Delivery Address Line 2], " +
+                                                "       T2.[Delivery Address Line 3]" +
                                                 "FROM [Consumables] T1 " +
-                                                "   INNER JOIN [Customer] T2 ON " +
-                                                "       T1.[Account No] = T2.[Account No] " +
-                                                " WHERE [Delivery Address Code] = '" + reader["PartyCode"].ToString() + "'";
+                                                "   INNER JOIN [Delivery Address] T2 ON " +
+                                                "       T1.[Delivery Address Code] = T2.[Delivery Address Code] " +
+                                                " WHERE T1.[Delivery Address Code] = '" + reader["PartyCode"].ToString() + "'";
                                 var commandAcc = new OdbcCommand(sqlAcc, connectionAcc);
                                 var readerAcc = commandAcc.ExecuteReader();
                                 while (readerAcc.Read())
                                 {
                                     MasterOwnedPartyContract Consumable = new MasterOwnedPartyContract();
-                                    Consumable.ParentPartyCode = readerAcc["Account No"].ToString();
-                                    Consumable.ParentPartyType = "Customer";
-                                    Consumable.ParentPartyFullName = readerAcc["Account Name"].ToString();
+                                    Consumable.ParentPartyCode = readerAcc["Delivery Address Code"].ToString();
+                                    Consumable.ParentPartyType = "DeliveryAddress";
+                                    Consumable.ParentPartyFullName = readerAcc["Delivery Address Line 2"].ToString() + " " + readerAcc["Delivery Address Line 3"].ToString();
                                     Consumable.PartyCode = readerAcc["Delivery Address Code"].ToString();
                                     Consumable.PartyType = "Consumable";
-                                    Consumable.PartyFullName = readerAcc["Account Name"].ToString();
+                                    Consumable.PartyFullName = readerAcc["Delivery Address Line 2"].ToString() + " " + readerAcc["Delivery Address Line 3"].ToString();
                                     Consumable.PartyPrimaryContactFullName = readerAcc["Consumables Contact Person"].ToString();
                                     Consumable.PartyPrimaryTelephoneNumber = Regex.Replace(readerAcc["Tel No For Consumables Contact Person"].ToString(), @"\D", "");
                                     Consumable.PartyPrimaryCellNumber = Regex.Replace(readerAcc["Cell No For Consumables Contact Person"].ToString(), @"\D", "");

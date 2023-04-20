@@ -6,6 +6,7 @@ using Aquazania.Integration.ServerApp.Client.DeliveryAddress;
 using Aquazania.Integration.ServerApp.Client.Supplier;
 using Aquazania.Integration.ServerApp.Client.SupplierDeliveryAddress;
 using Aquazania.Integration.ServerApp.Client.User;
+using Aquazania.Integration.ServerApp.Client.UserExtension;
 using HTTPServer.Client.Customer;
 
 
@@ -20,6 +21,7 @@ namespace HTTPServer.Client
         private string _COM_connectionString;
         private string _darielURL;
         private string _darielURLContact;
+        private string _darielURLUsers;
         public Timed_Client(ITimed_Client timed_client)
         {
             var configuration = new ConfigurationBuilder()
@@ -32,6 +34,7 @@ namespace HTTPServer.Client
             _COM_connectionString = configuration.GetConnectionString("Communicator_Connection");
             _darielURL = configuration.GetSection("darielURL").Value;
             _darielURLContact = configuration.GetSection("darielURLContact").Value;
+            _darielURLUsers = configuration.GetSection("darielUsers").Value; 
         }
         public void StartTimer()
         {
@@ -61,6 +64,9 @@ namespace HTTPServer.Client
                 new MasterSupplierDeliveryAddressLinkedParty(_darielURLContact),
                 new MasterUserLinkedParty(_darielURLContact)
             };
+
+            UserExtensionContract users = new UserExtensionContract(_darielURLUsers);
+            await users.SendMasterParty(_httpClient, _DTS_connectionString);
 
             foreach (IMasterParty party in masterParties)
             {
