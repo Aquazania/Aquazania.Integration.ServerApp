@@ -17,7 +17,7 @@ namespace HTTPServer.Factory.MasterPartyContract
 
             if (!Enum.TryParse(party.PartyType, out PartyTypes partyType))
             {
-                throw new NotSupportedException($"Party type {party.PartyType} is not supported.");
+                throw new NotSupportedException($"Party type : {party.PartyType} is not supported.");
             }
 
             switch (partyType)

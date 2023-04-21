@@ -13,7 +13,6 @@ namespace Aquazania.Integration.ServerApp.Factory.MasterLinkedPartyContract.Impl
             _COM_connectionString = configuration.GetConnectionString("Communicator_Connection");
             _DTS_connectionString = configuration.GetConnectionString("DTS_Connection");
         }
-
         public async Task Convert(ChangedLinkedContactContract party)
         {
             using (var connection = new OdbcConnection(_COM_connectionString))

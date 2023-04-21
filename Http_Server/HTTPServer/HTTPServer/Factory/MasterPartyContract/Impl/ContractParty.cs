@@ -11,17 +11,18 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
             _DTS_connectionString = configuration.GetConnectionString("DTS_Connection");
         }
         private string _DTS_connectionString;
-        public int Convert(ChangedPartyContactContract party)
+        public async Task<List<string>> Convert(ChangedPartyContactContract party)
         {
             int rows = 0;
-            if (ValidateParty(party))
-            {
-                return UpdateRequired(party);
-            }
-            else
-            {
-                throw new KeyNotFoundException($"Code : {party.PartyCode} was not found within the database");
-            }
+            List<string> errors = SanityCheck(party);
+            if (errors.Count() == 0)
+                if (ValidateParty(party))
+                    _ = UpdateRequired(party) > 0;
+                else
+                {
+                    errors.Add("Party Code Was Not Found In Database");
+                }
+            return errors;
         }
         public bool ValidateParty(ChangedPartyContactContract party)
         {
@@ -144,6 +145,34 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
                     throw ex;
                 }
             }
+        }
+        public List<string> SanityCheck(ChangedPartyContactContract party)
+        {
+            List<string> result = new List<string>();
+            //Basic Checks
+            if (party.PartyPrimaryContactFullName?.Equals(null) == true)
+            { result.Add("Contact Full Name Cannot Be Null"); }
+            if (party.PartyPrimaryCellNumber?.Equals(null) == false)
+                if (!party.PartyPrimaryCellNumber.All(char.IsDigit))
+                { result.Add("Cell No Must Be Numeric"); }
+            if (party.PartyPrimaryTelephoneNumber?.Equals(null) == false)
+                if (!party.PartyPrimaryTelephoneNumber.All(char.IsDigit))
+                { result.Add("Telephone No Must Be Numeric"); }
+            if (party.PartyPrimaryTelephoneNumber?.Equals(null) == true & party.PartyPrimaryCellNumber?.Equals(null) == true)
+            { result.Add("At Least One Contact No Must Be Provided"); }
+            if (party.PartyCode?.Equals(null) == true)
+            { result.Add("Party Code Cannot Be Null"); }
+            //Situational Checks
+            if (party.ParentPartyCode?.Equals(null) == true)
+                result.Add("Parent Party Code Must Not Be Null");
+            if (party.ParentPartyType?.Equals(null) == true)
+            { result.Add("Contract Must Have a Parent. Missing Type"); }
+            else
+            {
+                if (party.ParentPartyType != "Customer")
+                { result.Add("Invalid Parent Party Type. Contracts May Only Have Customer Parents."); }
+            }
+            return result;
         }
     }
 }
