@@ -109,6 +109,12 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
         {
             List<string> result = new List<string>();
             //Basic Checks
+            if (party.PartyPrimaryCellNumber?.Equals(null) == false)
+                if (party.PartyPrimaryCellNumber.StartsWith("+27"))
+                    party.PartyPrimaryCellNumber = string.Concat("0", party.PartyPrimaryCellNumber.AsSpan(3));
+            if (party.PartyPrimaryTelephoneNumber?.Equals(null) == false)
+                if (party.PartyPrimaryTelephoneNumber.StartsWith("+27"))
+                    party.PartyPrimaryTelephoneNumber = string.Concat("0", party.PartyPrimaryCellNumber.AsSpan(3));
             if (party.PartyPrimaryContactFullName?.Equals(null) == true)
             { result.Add("Contact Full Name Cannot Be Null"); }
             if (party.PartyPrimaryCellNumber?.Equals(null) == false)
@@ -121,6 +127,24 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
             { result.Add("At Least One Contact No Must Be Provided"); }
             if (party.PartyCode?.Equals(null) == true)
             { result.Add("Party Code Cannot Be Null"); }
+            if (party.User.UserName?.Equals(null) == true)
+            { result.Add("User Name Cannot Be Null"); }
+            using (var connection = new OdbcConnection(_DTS_connectionString))
+            {
+                try
+                {
+                    connection.Open();
+                    string sql = "SELECT [User Name] FROM [User] WHERE [User Name] = '" + party.User.UserName + "'";
+                    var command = new OdbcCommand(sql, connection);
+                    var reader = command.ExecuteReader();
+                    if (!reader.HasRows)
+                    { result.Add($"User {party.User.UserName} was not found in the database"); }
+                }
+                catch (OdbcException ex)
+                {
+                    throw ex;
+                }
+            }
             //Situational Checks
             if (!party.ParentPartyType?.Equals(null) == true)
             { result.Add("Contacts May Not Have a Parent. Type Provided"); }

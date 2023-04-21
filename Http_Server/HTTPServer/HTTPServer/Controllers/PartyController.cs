@@ -44,12 +44,31 @@ namespace HTTPServer.Controllers
         [HttpPost(nameof(PostLinkedParty))]
         public async Task<IActionResult> PostLinkedParty([FromBody] List<ChangedLinkedContactContract> parties)
         {
+            int successes = 0;
+            List<Error> errors = new List<Error>(); ;
             foreach (var party in parties)
             {
-                var convertor = LinkedPartyFactory.Create(party);
-                await convertor.Convert(party);
+                List<string> Validationerrors = new List<string>();
+                try
+                {
+                    var convertor = LinkedPartyFactory.Create(party);
+                    Task<List<string>> tasks = convertor.Convert(party);
+                    Validationerrors = await tasks;
+                }
+                catch (Exception ex)
+                {
+                    Validationerrors.Add(ex.Message);
+                }
+                if (Validationerrors.Count() == 0)
+                    successes += 1;
+                else
+                {
+                    Error error = new Error(party.ParentPartyCode, party.ParentPartyType, Validationerrors.ToArray());
+                    errors.Add(error);
+                }
             }
-            return Content("Successfully recieved.", "application/json");
+            var response = new Response(successes, errors.Count(), errors.ToArray());
+            return Content(JsonConvert.SerializeObject(response), "application/json");
         }
     }
 }
