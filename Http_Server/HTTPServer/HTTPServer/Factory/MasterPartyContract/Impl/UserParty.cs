@@ -153,7 +153,6 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
                 if (party.ParentPartyType?.Equals(null) == true)
                 { result.Add("You have provided a code but no type"); }
             return result;
-
         }
     }
 }

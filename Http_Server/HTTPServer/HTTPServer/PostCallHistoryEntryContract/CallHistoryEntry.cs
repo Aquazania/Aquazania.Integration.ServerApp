@@ -11,7 +11,7 @@ namespace Aquazania.Integration.ServerApp.PostCallHistoryEntryContract
     {
         enum PartyTypes { Contract, Customer, DeliveryAddress, Supplier, User, Contact, Consumable }
 
-        public int RecordHistory(CallHistoryEntryContract callresult)
+        public async Task<List<string>> RecordHistory(CallHistoryEntryContract callresult)
         {
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
@@ -19,18 +19,72 @@ namespace Aquazania.Integration.ServerApp.PostCallHistoryEntryContract
                 .Build();
 
             string _DTS_connectionString = configuration.GetConnectionString("DTS_Connection");
-            string[] tableInfo = IdentifyPartyForCall(callresult);
-            if (validatePartyForCall(tableInfo, callresult, _DTS_connectionString) != 3)
+            List<string> errors = SanityCheck(callresult, _DTS_connectionString);
+            if (errors.Count() == 0)
             {
-                if (CallDoesntExist(callresult, _DTS_connectionString, tableInfo))
+                string[] tableInfo = IdentifyPartyForCall(callresult);
+                if (validatePartyForCall(tableInfo, callresult, _DTS_connectionString) != 3)
                 {
-                    return DoInsert(callresult, _DTS_connectionString, tableInfo);
+                    if (CallDoesntExist(callresult, _DTS_connectionString, tableInfo))
+                    {
+                        _ = DoInsert(callresult, _DTS_connectionString, tableInfo);
+                    }
                 }
                 else
-                    return 1;
+                    errors.Add($"Code : {callresult.PartyCode} was not found within the database");
+            }
+            return errors;
+        }
+        public List<string> SanityCheck(CallHistoryEntryContract callHistory, string _DTS_connectionString)
+        {
+            List<string> result = new List<string>();
+            //Basic Checks
+            if (callHistory.IncomingCallNumber?.Equals(null) == false)
+            {
+                if (callHistory.IncomingCallNumber.StartsWith("+27"))
+                { callHistory.IncomingCallNumber = string.Concat("0", callHistory.IncomingCallNumber.AsSpan(3)); }
             }
             else
-                throw new KeyNotFoundException($"Code : {callresult.PartyCode} was not found within the database");
+            { result.Add("Incoming No Cannot Be Null"); }
+            if (callHistory.OutgoingCallNumber?.Equals(null) == false)
+            {
+                if (callHistory.OutgoingCallNumber.StartsWith("+27"))
+                { callHistory.OutgoingCallNumber = string.Concat("0", callHistory.OutgoingCallNumber.AsSpan(3)); }
+            }
+            else
+            { result.Add("Outgoing No Cannot Be Null"); }
+            if (callHistory.IncomingCallNumber?.Equals(null) == false)
+                if (!callHistory.IncomingCallNumber.All(char.IsDigit))
+                { result.Add("Cell No Must Be Numeric"); }
+            if (callHistory.OutgoingCallNumber?.Equals(null) == false)
+                if (!callHistory.OutgoingCallNumber.All(char.IsDigit))
+                { result.Add("Telephone No Must Be Numeric"); }
+            if (callHistory.CallId?.Equals(null) == true)
+            { result.Add("CallId Cannot Be Null"); }
+            if (callHistory.Extension?.Equals(null) == true)
+            { result.Add("Extension Cannot Be Null"); }
+            if (callHistory.Username?.Equals(null) == true)
+            { result.Add("User Name Cannot Be Null"); }
+            else 
+            {
+                using (var connection = new OdbcConnection(_DTS_connectionString))
+                {
+                    try
+                    {
+                        connection.Open();
+                        string sql = "SELECT [User Name] FROM [User] WHERE [User Name] = '" + callHistory.Username + "'";
+                        var command = new OdbcCommand(sql, connection);
+                        var reader = command.ExecuteReader();
+                        if (!reader.HasRows)
+                        { result.Add($"User {callHistory.Username} was not found in the database"); }
+                    }
+                    catch (OdbcException ex)
+                    {
+                        throw ex;
+                    }
+                }
+            }
+            return result;
         }
         private bool CallDoesntExist(CallHistoryEntryContract callresult, string _DTS_connectionString, string[] tableInfo)
         {
@@ -138,7 +192,7 @@ namespace Aquazania.Integration.ServerApp.PostCallHistoryEntryContract
             {
                 throw new NotSupportedException($"Party type {callHistory.PartyType} is not supported.");
             }
-            string[] result = { "", "" };
+            string[] result = new string[2];
             switch (partyType)
             {
                 case PartyTypes.Contract:
