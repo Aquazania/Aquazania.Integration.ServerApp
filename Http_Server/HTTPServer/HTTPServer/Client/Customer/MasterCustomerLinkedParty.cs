@@ -20,7 +20,7 @@ namespace HTTPServer.Client.Customer
                 {
                     try
                     {
-                        var data = buildMasterLinkObject(connection, transaction);
+                        var data = buildMasterLinkObject(connection, transaction, _COM_connectionString);
                         if (data.Count > 0)
                         {
                             var response = await _httpClient.SendAsync(data, darielURL);
@@ -31,7 +31,7 @@ namespace HTTPServer.Client.Customer
                             }
                             else
                             {
-                                LogUnsuccessfulRequest(_COM_connectionString, data, response, message);
+                                LogUnsuccessfulRequest(data, response, message, _COM_connectionString);
                             }
                         }
 
@@ -66,7 +66,7 @@ namespace HTTPServer.Client.Customer
                 throw ex;
             }
         }
-        public List<MasterOwnedLinkedContactContract> buildMasterLinkObject(OdbcConnection connection, OdbcTransaction transaction)
+        public List<MasterOwnedLinkedContactContract> buildMasterLinkObject(OdbcConnection connection, OdbcTransaction transaction, string _COM_connectionString)
         {
             List<MasterOwnedLinkedContactContract> customerUpdates = new List<MasterOwnedLinkedContactContract>();
             try
@@ -83,7 +83,7 @@ namespace HTTPServer.Client.Customer
                 {
                     while (reader.Read())
                     {
-                        using (var connectionAcc = new OdbcConnection(connection.ConnectionString))
+                        using (var connectionAcc = new OdbcConnection(_COM_connectionString))
                         {
                             try
                             {
@@ -124,7 +124,7 @@ namespace HTTPServer.Client.Customer
             }
             
         }
-        public void LogUnsuccessfulRequest(string _COM_connectionString, List<MasterOwnedLinkedContactContract> payload, HttpResponseMessage response, string message)
+        public void LogUnsuccessfulRequest(List<MasterOwnedLinkedContactContract> payload, HttpResponseMessage response, string failedContracts, string _COM_connectionString)
         {
             using (var connectionAcc = new OdbcConnection(_COM_connectionString))
             {
@@ -144,7 +144,7 @@ namespace HTTPServer.Client.Customer
                                + "	     0, "
                                + "       'Customer', "
                                + "       " + (int)response.StatusCode + ", "
-                               + "       '" + message.Replace("'", "''") + "'";
+                               + "       '" + failedContracts.Replace("'", "''") + "'";
                     var command = new OdbcCommand(sql, connectionAcc);
                     int rows = command.ExecuteNonQuery();
                 }

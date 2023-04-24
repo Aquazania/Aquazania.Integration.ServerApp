@@ -19,7 +19,7 @@ namespace Aquazania.Integration.ServerApp.Client.Supplier
                 {
                     try
                     {
-                        var data = buildMasterLinkObject(connection, transaction);
+                        var data = buildMasterLinkObject(connection, transaction, _COM_connectionString);
                         if (data.Count > 0)
                         {
                             var response = await _httpClient.SendAsync(data, darielURL);
@@ -30,7 +30,7 @@ namespace Aquazania.Integration.ServerApp.Client.Supplier
                             }
                             else
                             {
-                                LogUnsuccessfulRequest(_COM_connectionString, data, response, message);
+                                LogUnsuccessfulRequest(data, response, message, _COM_connectionString);
                             }
                         }
 
@@ -65,7 +65,7 @@ namespace Aquazania.Integration.ServerApp.Client.Supplier
                 throw ex;
             }
         }
-        public List<MasterOwnedLinkedContactContract> buildMasterLinkObject(OdbcConnection connection, OdbcTransaction transaction)
+        public List<MasterOwnedLinkedContactContract> buildMasterLinkObject(OdbcConnection connection, OdbcTransaction transaction, string _COM_connectionString)
         {
             List<MasterOwnedLinkedContactContract> supplierUpdates = new List<MasterOwnedLinkedContactContract>();
             try
@@ -82,7 +82,7 @@ namespace Aquazania.Integration.ServerApp.Client.Supplier
                 {
                     while (reader.Read())
                     {
-                        using (var connectionAcc = new OdbcConnection(connection.ConnectionString))
+                        using (var connectionAcc = new OdbcConnection(_COM_connectionString))
                         {
                             try
                             {
@@ -123,7 +123,7 @@ namespace Aquazania.Integration.ServerApp.Client.Supplier
             }
             
         }
-        public void LogUnsuccessfulRequest(string _COM_connectionString, List<MasterOwnedLinkedContactContract> payload, HttpResponseMessage response, string message)
+        public void LogUnsuccessfulRequest(List<MasterOwnedLinkedContactContract> payload, HttpResponseMessage response, string failedContracts, string _COM_connectionString)
         {
             using (var connectionAcc = new OdbcConnection(_COM_connectionString))
             {
@@ -143,7 +143,7 @@ namespace Aquazania.Integration.ServerApp.Client.Supplier
                                + "	     0, "
                                + "       'Supplier', "
                                + "       " + (int)response.StatusCode + ", "
-                               + "       '" + message.Replace("'", "''") + "'";
+                               + "       '" + failedContracts.Replace("'", "''") + "'";
                     var command = new OdbcCommand(sql, connectionAcc);
                     int rows = command.ExecuteNonQuery();
                 }

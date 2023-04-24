@@ -51,7 +51,9 @@ namespace HTTPServer.Client
                 new MasterSupplierParty(_darielURL),
                 new MasterSupplierDeliveryAddressParty(_darielURL),
                 new MasterUserParty(_darielURL),
-                new MasterConsumableParty(_darielURL)
+                new MasterConsumableParty(_darielURL),
+                new MasterConsumableContractParty(_darielURL),
+                new MasterDeliveryAddressContractParty(_darielURL)
             };
 
             List<IMasterLinkedParty> masterLinkedParties = new List<IMasterLinkedParty>()

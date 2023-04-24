@@ -50,11 +50,11 @@ namespace Aquazania.Integration.ServerApp.Client.Consumable
             {
                 string sql = "UPDATE [Temp Master Party Contract] "
                             + "	SET [Synced] = 1 "
-                            + "WHERE PartyType = 'Consumables' AND "
+                            + "WHERE PartyType = 'ContractConsumable' AND "
                             + "	  PartyCode IN (SELECT PartyCode "
                             + "					FROM [Temp Master Party Contract] "
                             + "					WHERE [Synced] = 0 AND "
-                            + "						  [PartyType] = 'Consumables' "
+                            + "						  [PartyType] = 'ContractConsumable' "
                             + "					GROUP BY PartyCode) ";
                 var command = new OdbcCommand(sql, connection);
                 command.Transaction = transaction;
@@ -73,7 +73,7 @@ namespace Aquazania.Integration.ServerApp.Client.Consumable
                 string sql = "SELECT PartyCode "
                             + "FROM [Temp Master Party Contract] "
                             + "WHERE [Synced] = 0 AND "
-                            + "	  [PartyType] = 'Consumables' "
+                            + "	  [PartyType] = 'ContractConsumable' "
                             + "GROUP BY PartyCode ";
                 var command = new OdbcCommand(sql, connection);
                 command.Transaction = transaction;
@@ -87,24 +87,20 @@ namespace Aquazania.Integration.ServerApp.Client.Consumable
                             try
                             {
                                 connectionAcc.Open();
-                                string sqlAcc = "SELECT T1.*,  " +
-                                                "       T2.[Delivery Address Line 2], " +
-                                                "       T2.[Delivery Address Line 3]" +
-                                                "FROM [Consumables] T1 " +
-                                                "   INNER JOIN [Delivery Address] T2 ON " +
-                                                "       T1.[Delivery Address Code] = T2.[Delivery Address Code] " +
-                                                " WHERE T1.[Delivery Address Code] = '" + reader["PartyCode"].ToString() + "'";
+                                string sqlAcc = "SELECT *  " +
+                                                "FROM [Contract]  " +
+                                                "WHERE [Contract No] = " + reader["PartyCode"].ToString();
                                 var commandAcc = new OdbcCommand(sqlAcc, connectionAcc);
                                 var readerAcc = commandAcc.ExecuteReader();
                                 while (readerAcc.Read())
                                 {
                                     MasterOwnedPartyContract Consumable = new MasterOwnedPartyContract();
-                                    Consumable.ParentPartyCode = readerAcc["Delivery Address Code"].ToString();
-                                    Consumable.ParentPartyType = "DeliveryAddress";
-                                    Consumable.ParentPartyFullName = readerAcc["Delivery Address Line 2"].ToString() + " " + readerAcc["Delivery Address Line 3"].ToString();
-                                    Consumable.PartyCode = readerAcc["Delivery Address Code"].ToString();
+                                    Consumable.ParentPartyCode = readerAcc["Contract No"].ToString();
+                                    Consumable.ParentPartyType = "Contract";
+                                    Consumable.ParentPartyFullName = readerAcc["Account Name"].ToString();
+                                    Consumable.PartyCode = null;
                                     Consumable.PartyType = "Consumable";
-                                    Consumable.PartyFullName = readerAcc["Delivery Address Line 2"].ToString() + " " + readerAcc["Delivery Address Line 3"].ToString();
+                                    Consumable.PartyFullName = readerAcc["Account Name"].ToString();
                                     Consumable.PartyPrimaryContactFullName = readerAcc["Consumables Contact Person"].ToString();
                                     Consumable.PartyPrimaryTelephoneNumber = Regex.Replace(readerAcc["Tel No For Consumables Contact Person"].ToString(), @"\D", "");
                                     Consumable.PartyPrimaryCellNumber = Regex.Replace(readerAcc["Cell No For Consumables Contact Person"].ToString(), @"\D", "");
