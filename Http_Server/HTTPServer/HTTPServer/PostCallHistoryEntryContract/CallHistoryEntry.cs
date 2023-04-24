@@ -10,7 +10,6 @@ namespace Aquazania.Integration.ServerApp.PostCallHistoryEntryContract
     public class CallHistoryEntry
     {
         enum PartyTypes { Contract, Customer, DeliveryAddress, Supplier, User, Contact, Consumable }
-
         public async Task<List<string>> RecordHistory(CallHistoryEntryContract callresult)
         {
             var configuration = new ConfigurationBuilder()
