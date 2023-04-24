@@ -44,22 +44,27 @@ namespace Aquazania.Integration.ServerApp.PostCallHistoryEntryContract
                 { callHistory.IncomingCallNumber = string.Concat("0", callHistory.IncomingCallNumber.AsSpan(3)); }
             }
             else
-            { result.Add("Incoming No Cannot Be Null"); }
-            if (callHistory.OutgoingCallNumber?.Equals(null) == false)
-            {
-                if (callHistory.OutgoingCallNumber.StartsWith("+27"))
-                { callHistory.OutgoingCallNumber = string.Concat("0", callHistory.OutgoingCallNumber.AsSpan(3)); }
-            }
-            else
-            { result.Add("Outgoing No Cannot Be Null"); }
+            //{ result.Add("Incoming No Cannot Be Null"); }
+            //if (callHistory.OutgoingCallNumber?.Equals(null) == false)
+            //{
+            //    if (callHistory.OutgoingCallNumber.StartsWith("+27"))
+            //    { callHistory.OutgoingCallNumber = string.Concat("0", callHistory.OutgoingCallNumber.AsSpan(3)); }
+            //}
+            //else
+            //{ result.Add("Outgoing No Cannot Be Null"); }
             if (callHistory.IncomingCallNumber?.Equals(null) == false)
                 if (!callHistory.IncomingCallNumber.All(char.IsDigit))
-                { result.Add("Cell No Must Be Numeric"); }
-            if (callHistory.OutgoingCallNumber?.Equals(null) == false)
-                if (!callHistory.OutgoingCallNumber.All(char.IsDigit))
-                { result.Add("Telephone No Must Be Numeric"); }
+                { result.Add("Incoming No Must Be Numeric"); }
+            //if (callHistory.OutgoingCallNumber?.Equals(null) == false)
+            //    if (!callHistory.OutgoingCallNumber.All(char.IsDigit))
+            //    { result.Add("Telephone No Must Be Numeric"); }
+            if (callHistory.ContactFullName?.Equals(null) == false)
+                if (callHistory.ContactFullName?.Length > 50)
+                { result.Add("Contact full name is limited to 50 characters"); }
             if (callHistory.CallId?.Equals(null) == true)
             { result.Add("CallId Cannot Be Null"); }
+            if (callHistory.SipCallId?.Equals(null) == true)
+            { result.Add("SIPCallid Cannot Be Null"); }
             if (callHistory.Extension?.Equals(null) == true)
             { result.Add("Extension Cannot Be Null"); }
             if (callHistory.Username?.Equals(null) == true)
@@ -113,7 +118,7 @@ namespace Aquazania.Integration.ServerApp.PostCallHistoryEntryContract
                                            + "	  	  [Contact Number] = '" + callresult.IncomingCallNumber + "' "
                                            + "WHERE [PBX Unique ID] = '" + callresult.CallId + "' ";
                                 var command1 = new OdbcCommand(sql1, connection1);
-                                int rows = command.ExecuteNonQuery();  
+                                int rows = command1.ExecuteNonQuery();  
                             }
                             catch (Exception ex)
                             {
@@ -139,11 +144,11 @@ namespace Aquazania.Integration.ServerApp.PostCallHistoryEntryContract
                 {
                     DateTime localTime = callresult.UtcStartTime.ToLocalTime();
                     connection.Open();
-                    bool direction = false;
+                    int direction = 0;
                     if (callresult.CallDirection == "Outgoing")
-                        direction = false;
+                        direction = 0;
                     else 
-                        direction = true;
+                        direction = 1;
                     string sql = "INSERT INTO [Call Result Log] ([Source] "
                                + "							    ,[Call Batch Date] "
                                + "							    ,[Reference Code] "
@@ -163,7 +168,7 @@ namespace Aquazania.Integration.ServerApp.PostCallHistoryEntryContract
                                + "SELECT '" + callresult.Source + "', "
                                + "	     '" + DateTime.Now + "', "
                                + "	     '" + callresult.PartyCode + "', "
-                               + "	     " + tableinfo[3] + ", "
+                               + "	     " + tableinfo[2] + ", "
                                + "	     '" + callresult.ContactFullName + "', "
                                + "	     '" + callresult.IncomingCallNumber + "', "
                                + "	     '" + localTime + "', "
@@ -191,7 +196,7 @@ namespace Aquazania.Integration.ServerApp.PostCallHistoryEntryContract
             {
                 throw new NotSupportedException($"Party type {callHistory.PartyType} is not supported.");
             }
-            string[] result = new string[2];
+            string[] result = new string[3];
             switch (partyType)
             {
                 case PartyTypes.Contract:
@@ -263,7 +268,7 @@ namespace Aquazania.Integration.ServerApp.PostCallHistoryEntryContract
                                                 + "FROM [Supplier Delivery Address] "
                                                 + "WHERE [Delivery Address Code] = '" + callHistory.PartyCode + "'";
                                     var command1 = new OdbcCommand(sql, connection1);
-                                    var reader1 = command.ExecuteReader();
+                                    var reader1 = command1.ExecuteReader();
                                     if (reader1.HasRows)
                                         return 2;
                                     else
