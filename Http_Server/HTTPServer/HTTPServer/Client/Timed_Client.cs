@@ -22,6 +22,7 @@ namespace HTTPServer.Client
         private string _darielURL;
         private string _darielURLContact;
         private string _darielURLUsers;
+        private static bool isRunning = false;
         public Timed_Client(ITimed_Client timed_client)
         {
             var configuration = new ConfigurationBuilder()
@@ -42,6 +43,13 @@ namespace HTTPServer.Client
         }
         private async void CallBackFunctions(object state)
         {
+            if (isRunning)
+            {
+                return;
+            }
+
+            isRunning = true;
+
             List<IMasterParty> masterParties = new List<IMasterParty>()
             {
                 new MasterContactParty(_darielURL),
@@ -79,6 +87,8 @@ namespace HTTPServer.Client
             {
                 await linkedParty.SendMasterLinkedParty(_httpClient, _COM_connectionString, _DTS_connectionString);
             }
+
+            isRunning = false;
         }
     }
 }
