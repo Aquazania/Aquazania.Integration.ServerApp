@@ -102,6 +102,20 @@ namespace HTTPServer.Client.Customer
                                 {
                                     MasterOwnedLinkedContactContract customer = new MasterOwnedLinkedContactContract();
                                     string curAccountNo = readerAcc["DocumentReferenceCode"].ToString();
+                                    //using (var connectiontest = new OdbcConnection(_COM_connectionString))
+                                    //{
+                                    //    try 
+                                    //    {
+                                    //        connectiontest.Open();
+                                    //        string sqltest = "INSERT INTO [attemptedentry]([Acc] "
+                                    //                        + "  							,[time]) "
+                                    //                        + "SELECT '" + readerAcc["DocumentReferenceCode"].ToString() + "', "
+                                    //                        + "		'" + DateTime.Now + "'";
+                                    //        var commandtest = new OdbcCommand(sqltest, connectiontest);
+                                    //        _ = commandtest.ExecuteNonQuery();
+                                    //    }
+                                    //    catch (OdbcException ex) { throw ex; }
+                                    //}
                                     if (prevAccountNo != curAccountNo)
                                     {
                                         using (var connectionAccountInfo = new OdbcConnection(_DTS_connectionString))
