@@ -2,6 +2,7 @@
 using Aquazania.Telephony.Integration.Models;
 using Newtonsoft.Json;
 using System.Data.Odbc;
+using System.Diagnostics.Contracts;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 
@@ -94,15 +95,52 @@ namespace HTTPServer.Client.Customer
                                                 "  AND [ContactPointTypeID] = 2";
                                 var commandAcc = new OdbcCommand(sqlAcc, connectionAcc);
                                 var readerAcc = commandAcc.ExecuteReader();
+                                string prevAccountNo = null;
+                                string accName = null;
+                                string accNo = null;
                                 while (readerAcc.Read())
                                 {
                                     MasterOwnedLinkedContactContract customer = new MasterOwnedLinkedContactContract();
+                                    string curAccountNo = readerAcc["DocumentReferenceCode"].ToString();
+                                    if (prevAccountNo != curAccountNo)
+                                    {
+                                        using (var connectionAccountInfo = new OdbcConnection(_DTS_connectionString))
+                                        {
+                                            try
+                                            {
+                                                string sqlAccInfo = "SELECT * FROM [Customer] WHERE [Account No] = '" + readerAcc["DocumentReferenceCode"].ToString() + "'";
+                                                connectionAccountInfo.Open();
+                                                var commandAccInfo = new OdbcCommand(sqlAccInfo, connectionAccountInfo);
+                                                var readerAccInfo = commandAccInfo.ExecuteReader();
+                                                if (readerAccInfo.HasRows)
+                                                {
+                                                    while (readerAccInfo.Read())
+                                                    {
+                                                        int accountNoIndex = readerAccInfo.GetOrdinal("Account No");
+                                                        if (!readerAccInfo.IsDBNull(accountNoIndex))
+                                                        {
+                                                            customer.AccountCode = readerAccInfo["Account No"].ToString();
+                                                            customer.AccountName = readerAccInfo["Account Name"].ToString();
+                                                            accNo = readerAccInfo["Account No"].ToString();
+                                                            accName = readerAccInfo["Account Name"].ToString();
+                                                        }
+                                                    }
+                                                }
+                                                else
+                                                { customer.AccountName = null; customer.AccountCode = null; }
+                                            }
+                                            catch (OdbcException ex) { throw ex; }
+                                        }
+                                    }
+                                    else
+                                    { customer.AccountCode = accNo; customer.AccountName = accName; }
                                     customer.ParentPartyCode = readerAcc["DocumentReferenceCode"].ToString();
                                     customer.ParentPartyType = "Customer";
                                     customer.ContactFullName = readerAcc["ContactName"].ToString() + " " + (!readerAcc.IsDBNull(readerAcc.GetOrdinal("ContactLastName")) ? readerAcc["ContactLastName"].ToString() : "");
                                     customer.PhoneNumber = Regex.Replace(readerAcc["ContactPointValue"].ToString(), @"\D", "");
                                     customer.IsActive = true;
                                     customerUpdates.Add(customer);
+                                    prevAccountNo = curAccountNo;
                                 }
                             }
                             catch (OdbcException ex)

@@ -97,11 +97,6 @@ namespace Aquazania.Integration.ServerApp.Client.Contact
                                     MasterOwnedLinkedContactContract contact = new MasterOwnedLinkedContactContract();
                                     contact.ParentPartyCode = readerAcc["DocumentReferenceCode"].ToString();
                                     contact.ParentPartyType = "Contact";
-                                    using (var connectionAccountInfo = new OdbcConnection(_DTS_connectionString))
-                                    {
-                                        try { }
-                                        catch(OdbcException ex) { throw ex;}
-                                    }
                                     contact.AccountName = null;
                                     contact.AccountCode = null;
                                     contact.ContactFullName = readerAcc["ContactName"].ToString() + " " + (!readerAcc.IsDBNull(readerAcc.GetOrdinal("ContactLastName")) ? readerAcc["ContactLastName"].ToString() : "");

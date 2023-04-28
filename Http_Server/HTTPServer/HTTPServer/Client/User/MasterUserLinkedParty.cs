@@ -93,15 +93,52 @@ namespace Aquazania.Integration.ServerApp.Client.User
                                                 "  AND [ContactPointTypeID] = 2 ";
                                 var commandAcc = new OdbcCommand(sqlAcc, connectionAcc);
                                 var readerAcc = commandAcc.ExecuteReader();
+                                string prevAccountNo = null;
+                                string accName = null;
+                                string accNo = null;
                                 while (readerAcc.Read())
                                 {
                                     MasterOwnedLinkedContactContract user = new MasterOwnedLinkedContactContract();
+                                    string curAccountNo = readerAcc["DocumentReferenceCode"].ToString();
+                                    if (prevAccountNo != curAccountNo)
+                                    {
+                                        using (var connectionAccountInfo = new OdbcConnection(_DTS_connectionString))
+                                        {
+                                            try
+                                            {
+                                                string sqlAccInfo = "SELECT * FROM [User] WHERE [User Name] = '" + readerAcc["DocumentReferenceCode"].ToString() + "'";
+                                                connectionAccountInfo.Open();
+                                                var commandAccInfo = new OdbcCommand(sqlAccInfo, connectionAccountInfo);
+                                                var readerAccInfo = commandAccInfo.ExecuteReader();
+                                                if (readerAccInfo.HasRows)
+                                                {
+                                                    while (readerAccInfo.Read())
+                                                    {
+                                                        int accountNoIndex = readerAccInfo.GetOrdinal("Account No");
+                                                        if (!readerAccInfo.IsDBNull(accountNoIndex))
+                                                        {
+                                                            user.AccountCode = readerAccInfo["Account No"].ToString();
+                                                            user.AccountName = readerAccInfo["Account Name"].ToString();
+                                                            accNo = readerAccInfo["Account No"].ToString();
+                                                            accName = readerAccInfo["Account Name"].ToString();
+                                                        }
+                                                    }
+                                                }
+                                                else
+                                                { user.AccountName = null; user.AccountCode = null; }
+                                            }
+                                            catch (OdbcException ex) { throw ex; }
+                                        }
+                                    }
+                                    else
+                                    { user.AccountCode = accNo; user.AccountName = accName; }
                                     user.ParentPartyCode = readerAcc["DocumentReferenceCode"].ToString();
                                     user.ParentPartyType = "User";
                                     user.ContactFullName = readerAcc["ContactName"].ToString() + " " + (!readerAcc.IsDBNull(readerAcc.GetOrdinal("ContactLastName")) ? readerAcc["ContactLastName"].ToString() : "");                                    
                                     user.PhoneNumber = Regex.Replace(readerAcc["ContactPointValue"].ToString(), @"\D", "");
                                     user.IsActive = true;
                                     userUpdates.Add(user);
+                                    prevAccountNo = curAccountNo;
                                 }
                             }
                             catch (OdbcException ex)
