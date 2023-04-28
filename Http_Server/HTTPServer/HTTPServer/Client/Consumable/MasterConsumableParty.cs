@@ -90,9 +90,12 @@ namespace Aquazania.Integration.ServerApp.Client.Consumable
                                 string sqlAcc = "SELECT T1.*,  " +
                                                 "       T2.[Delivery Address Line 2], " +
                                                 "       T2.[Delivery Address Line 3]" +
+                                                "       T3.[Account Name]" +
                                                 "FROM [Consumables] T1 " +
                                                 "   INNER JOIN [Delivery Address] T2 ON " +
                                                 "       T1.[Delivery Address Code] = T2.[Delivery Address Code] " +
+                                                "   INNER JOIN [Customer] T3 ON " +
+                                                "       T2.[Account No] = T3.[Account No] " +
                                                 " WHERE T1.[Delivery Address Code] = '" + reader["PartyCode"].ToString() + "'";
                                 var commandAcc = new OdbcCommand(sqlAcc, connectionAcc);
                                 var readerAcc = commandAcc.ExecuteReader();
@@ -101,6 +104,12 @@ namespace Aquazania.Integration.ServerApp.Client.Consumable
                                     MasterOwnedPartyContract Consumable = new MasterOwnedPartyContract();
                                     Consumable.ParentPartyCode = readerAcc["Delivery Address Code"].ToString();
                                     Consumable.ParentPartyType = "DeliveryAddress";
+                                    int accountNoIndex = readerAcc.GetOrdinal("Account No");
+                                    if (!readerAcc.IsDBNull(accountNoIndex))
+                                    {
+                                        Consumable.AccountCode = readerAcc["Account No"].ToString();
+                                        Consumable.AccountName = readerAcc["Account Name"].ToString();
+                                    }
                                     Consumable.ParentPartyFullName = readerAcc["Delivery Address Line 2"].ToString() + " " + readerAcc["Delivery Address Line 3"].ToString();
                                     Consumable.PartyCode = readerAcc["Delivery Address Code"].ToString();
                                     Consumable.PartyType = "Consumable";
@@ -145,7 +154,7 @@ namespace Aquazania.Integration.ServerApp.Client.Consumable
                                + "                                    ,[Response] "
                                + "                                    ,[Response Detail])"
                                + ""
-                               + "SELECT '" + payloadJSON + "', "
+                               + "SELECT '" + payloadJSON.Replace("'", "''") + "', "
                                + "	     '" + DateTime.Now + "', "
                                + "	     0, "
                                + "       'Consumables', "

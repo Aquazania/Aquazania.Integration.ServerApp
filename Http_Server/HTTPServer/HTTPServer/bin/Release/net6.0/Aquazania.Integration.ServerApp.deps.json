@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v6.0": {
-      "HTTPServer/1.0.0": {
+      "Aquazania.Integration.ServerApp/1.0.0": {
         "dependencies": {
           "Microsoft.AspNet.WebApi.Core": "5.2.9",
           "Swashbuckle.AspNetCore": "6.2.3",
@@ -15,7 +15,7 @@
           "Aquazania.Telephony.Integration": "1.0.0.0"
         },
         "runtime": {
-          "HTTPServer.dll": {}
+          "Aquazania.Integration.ServerApp.dll": {}
         }
       },
       "Microsoft.AspNet.WebApi.Client/5.2.9": {
@@ -1082,7 +1082,7 @@
     }
   },
   "libraries": {
-    "HTTPServer/1.0.0": {
+    "Aquazania.Integration.ServerApp/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

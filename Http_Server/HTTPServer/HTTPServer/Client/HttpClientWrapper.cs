@@ -13,7 +13,9 @@ namespace HTTPServer.Client
         }
         public async Task<HttpResponseMessage> SendAsync(object data, string url)
         {
-            string payload = JsonConvert.SerializeObject(data);
+            string payload = JsonConvert.SerializeObject(data, Formatting.Indented);
+            //string docPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            //File.WriteAllText(Path.Combine(docPath, "WriteFile.txt"), payload);
             var content = new StringContent(payload, Encoding.UTF8, "application/json");
             HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, url)
             {
@@ -21,5 +23,6 @@ namespace HTTPServer.Client
             };
             return await _httpClient.SendAsync(message).ConfigureAwait(false);
         }
+
     }
 }

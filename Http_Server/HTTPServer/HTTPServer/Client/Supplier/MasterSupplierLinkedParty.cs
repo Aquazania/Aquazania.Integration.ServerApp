@@ -10,7 +10,7 @@ namespace Aquazania.Integration.ServerApp.Client.Supplier
     {
         public MasterSupplierLinkedParty(string url) { darielURL = url; }
         private string darielURL;
-        public async Task SendMasterLinkedParty(ITimed_Client _httpClient, string _COM_connectionString)
+        public async Task SendMasterLinkedParty(ITimed_Client _httpClient, string _COM_connectionString, string _DTS_connectionString)
         {
             using (var connection = new OdbcConnection(_COM_connectionString))
             {
@@ -19,7 +19,7 @@ namespace Aquazania.Integration.ServerApp.Client.Supplier
                 {
                     try
                     {
-                        var data = buildMasterLinkObject(connection, transaction, _COM_connectionString);
+                        var data = buildMasterLinkObject(connection, transaction, _COM_connectionString, _DTS_connectionString);
                         if (data.Count > 0)
                         {
                             var response = await _httpClient.SendAsync(data, darielURL);
@@ -65,7 +65,7 @@ namespace Aquazania.Integration.ServerApp.Client.Supplier
                 throw ex;
             }
         }
-        public List<MasterOwnedLinkedContactContract> buildMasterLinkObject(OdbcConnection connection, OdbcTransaction transaction, string _COM_connectionString)
+        public List<MasterOwnedLinkedContactContract> buildMasterLinkObject(OdbcConnection connection, OdbcTransaction transaction, string _COM_connectionString, string _DTS_connectionString)
         {
             List<MasterOwnedLinkedContactContract> supplierUpdates = new List<MasterOwnedLinkedContactContract>();
             try

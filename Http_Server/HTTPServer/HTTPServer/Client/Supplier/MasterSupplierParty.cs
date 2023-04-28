@@ -104,12 +104,16 @@ namespace Aquazania.Integration.ServerApp.Client.Supplier
                                         supplier.ParentPartyCode = readerAcc["Account No"].ToString();
                                         supplier.ParentPartyType = "Customer";
                                         supplier.ParentPartyFullName = readerAcc["Account Name"].ToString();
+                                        supplier.AccountCode = readerAcc["Account No"].ToString();
+                                        supplier.AccountName = readerAcc["Account Name"].ToString();
                                     }
                                     else
                                     { 
                                         supplier.ParentPartyCode = null;
                                         supplier.ParentPartyType = null;
                                         supplier.ParentPartyFullName = null;
+                                        supplier.AccountCode = null;
+                                        supplier.AccountName = null;
                                     }
                                     supplier.PartyCode = readerAcc["Supplier No"].ToString();
                                     supplier.PartyType = "Supplier";

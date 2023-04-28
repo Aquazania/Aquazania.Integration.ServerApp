@@ -100,6 +100,8 @@ namespace Aquazania.Integration.ServerApp.Client.Contact
                                     contact.ParentPartyFullName = null;
                                     contact.PartyCode = readerAcc["Contact No"].ToString();
                                     contact.PartyType = "Contact";
+                                    contact.AccountCode = null;
+                                    contact.AccountName = null;
                                     contact.PartyFullName = readerAcc["Company"].ToString();
                                     contact.PartyPrimaryContactFullName = readerAcc["Contact Person"].ToString();
                                     contact.PartyPrimaryTelephoneNumber = Regex.Replace(readerAcc["Telephone No"].ToString(), @"\D", "");
@@ -141,7 +143,7 @@ namespace Aquazania.Integration.ServerApp.Client.Contact
                                + "                                    ,[Response] "
                                + "                                    ,[Response Detail])"
                                + ""
-                               + "SELECT '" + payloadJSON + "', "
+                               + "SELECT '" + payloadJSON.Replace("'", "''") + "', "
                                + "	     '" + DateTime.Now + "', "
                                + "	     0, "
                                + "       'Contact', "

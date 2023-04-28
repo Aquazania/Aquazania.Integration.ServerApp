@@ -103,6 +103,8 @@ namespace Aquazania.Integration.ServerApp.Client.DeliveryAddress
                                     DeliveryAddress.ParentPartyType = "Customer";
                                     DeliveryAddress.ParentPartyFullName = readerAcc["Account Name"].ToString();
                                     DeliveryAddress.PartyCode = readerAcc["Delivery Address Code"].ToString();
+                                    DeliveryAddress.AccountCode = readerAcc["Account No"].ToString();
+                                    DeliveryAddress.AccountName = readerAcc["Account Name"].ToString();
                                     DeliveryAddress.PartyType = "DeliveryAddress";
                                     DeliveryAddress.PartyFullName = readerAcc["Delivery Address Line 2"].ToString() + " " + readerAcc["Delivery Address Line 3"].ToString();
                                     DeliveryAddress.PartyPrimaryContactFullName = readerAcc["Contact Person"].ToString();

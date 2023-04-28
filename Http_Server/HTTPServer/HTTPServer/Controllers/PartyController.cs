@@ -45,7 +45,7 @@ namespace HTTPServer.Controllers
         public async Task<IActionResult> PostLinkedParty([FromBody] List<ChangedLinkedContactContract> parties)
         {
             int successes = 0;
-            List<Error> errors = new List<Error>(); ;
+            List<Error> errors = new List<Error>(); 
             foreach (var party in parties)
             {
                 List<string> Validationerrors = new List<string>();
@@ -69,6 +69,11 @@ namespace HTTPServer.Controllers
             }
             var response = new Response(successes, errors.Count(), errors.ToArray());
             return Content(JsonConvert.SerializeObject(response), "application/json");
+        }
+        [HttpGet(nameof(ConnectionCheck))]
+        public string ConnectionCheck()
+        {
+            return "Connection Good";
         }
     }
 }

@@ -149,7 +149,8 @@ namespace Aquazania.Integration.ServerApp.PostCallHistoryEntryContract
                         direction = 0;
                     else 
                         direction = 1;
-                    string sql = "INSERT INTO [Call Result Log] ([Source] "
+                    string sql = "DECLARE @CallID INT " 
+                               + "INSERT INTO [Call Result Log] ([Source] "
                                + "							    ,[Call Batch Date] "
                                + "							    ,[Reference Code] "
                                + "							    ,[Reference Type] "
@@ -180,7 +181,14 @@ namespace Aquazania.Integration.ServerApp.PostCallHistoryEntryContract
                                + "	     null,"
                                + "	     '" + callresult.CallId + "',"
                                + "	     '" + callresult.Username + "', "
-                               + "	     null";
+                               + "	     null "
+                               + "SELECT @CallID = SCOPE_IDENTITY() "
+                               + "INSERT INTO [Call Result Log External Reference] ([Call ID] "
+                               + "												   ,[Reference Code] "
+                               + "												   ,[Reference Type]) "
+                               + "SELECT @CallID, "
+                               + "	      '" + callresult.PartyCode + "',  "
+                               + "	      " + tableinfo[2];
                     var command = new OdbcCommand(sql, connection);
                     return command.ExecuteNonQuery();
                 }

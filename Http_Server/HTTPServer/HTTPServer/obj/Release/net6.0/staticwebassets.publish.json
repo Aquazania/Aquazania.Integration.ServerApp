@@ -1,8 +1,8 @@
 {
   "Version": 1,
-  "Hash": "QgbcwVm0aWDOg5bl/cSkAkhliFkPVgcw37b0ToRD2uw=",
-  "Source": "HTTPServer",
-  "BasePath": "_content/HTTPServer",
+  "Hash": "/JxpIiWNz/Zwyr9zMIuqyBtirMZ2wH5BIxqvnPszewQ=",
+  "Source": "Aquazania.Integration.ServerApp",
+  "BasePath": "_content/Aquazania.Integration.ServerApp",
   "Mode": "Default",
   "ManifestType": "Publish",
   "ReferencedProjectsConfiguration": [],

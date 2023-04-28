@@ -98,6 +98,12 @@ namespace Aquazania.Integration.ServerApp.Client.Consumable
                                     Consumable.ParentPartyCode = readerAcc["Contract No"].ToString();
                                     Consumable.ParentPartyType = "Contract";
                                     Consumable.ParentPartyFullName = readerAcc["Account Name"].ToString();
+                                    int accountNoIndex = readerAcc.GetOrdinal("Account No");
+                                    if (!readerAcc.IsDBNull(accountNoIndex))
+                                    {
+                                        Consumable.AccountCode = readerAcc["Account No"].ToString();
+                                        Consumable.AccountName = readerAcc["Account Name"].ToString();
+                                    }
                                     Consumable.PartyCode = null;
                                     Consumable.PartyType = "Consumable";
                                     Consumable.PartyFullName = readerAcc["Account Name"].ToString();
@@ -141,7 +147,7 @@ namespace Aquazania.Integration.ServerApp.Client.Consumable
                                + "                                    ,[Response] "
                                + "                                    ,[Response Detail])"
                                + ""
-                               + "SELECT '" + payloadJSON + "', "
+                               + "SELECT '" + payloadJSON.Replace("'", "''") + "', "
                                + "	     '" + DateTime.Now + "', "
                                + "	     0, "
                                + "       'Consumables', "

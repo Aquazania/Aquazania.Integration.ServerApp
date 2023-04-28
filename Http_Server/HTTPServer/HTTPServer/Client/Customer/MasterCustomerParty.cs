@@ -99,6 +99,8 @@ namespace HTTPServer.Client.Customer
                                     customer.ParentPartyFullName = null;
                                     customer.PartyCode = readerAcc["Account No"].ToString();
                                     customer.PartyType = "Customer";
+                                    customer.AccountCode = null;
+                                    customer.AccountName = null;
                                     customer.PartyFullName = readerAcc["Account Name"].ToString();
                                     customer.PartyPrimaryContactFullName = readerAcc["Creditors Clerk"].ToString();
                                     customer.PartyPrimaryTelephoneNumber = Regex.Replace(readerAcc["Telephone No"].ToString(), @"\D", "");
@@ -140,7 +142,7 @@ namespace HTTPServer.Client.Customer
                                + "                                    ,[Response] "
                                + "                                    ,[Response Detail])"
                                + ""
-                               + "SELECT '" + payloadJSON + "', "
+                               + "SELECT '" + payloadJSON.Replace("'", "''") + "', "
                                + "	     '" + DateTime.Now + "', "
                                + "	     0, "
                                + "       'Customer', "

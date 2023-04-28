@@ -2,6 +2,7 @@
 using HTTPServer.Client;
 using Newtonsoft.Json;
 using System.Data.Odbc;
+using System.Security.Principal;
 using System.Text.RegularExpressions;
 
 namespace Aquazania.Integration.ServerApp.Client.SupplierDeliveryAddress
@@ -88,9 +89,13 @@ namespace Aquazania.Integration.ServerApp.Client.SupplierDeliveryAddress
                             {
                                 connectionAcc.Open();
                                 string sqlAcc = "SELECT * " +
+                                                "       T3.[Account No]" +
+                                                "       T3.[Account Name] " + 
                                                 "FROM [Supplier Delivery Address] T1 " +
                                                 "   INNER JOIN [Supplier] T2 ON " +
                                                 "       T1.[Supplier No] = T2.[Supplier No] " +
+                                                "   LEFT JOIN [Customer] T3 ON " + 
+                                                "   T2.[Account No] + T3.[Account No] " + 
                                                 " WHERE [Delivery Address Code] = '" + reader["PartyCode"].ToString() + "'";
                                 var commandAcc = new OdbcCommand(sqlAcc, connectionAcc);
                                 var readerAcc = commandAcc.ExecuteReader();
@@ -102,6 +107,17 @@ namespace Aquazania.Integration.ServerApp.Client.SupplierDeliveryAddress
                                     DeliveryAddress.ParentPartyFullName = readerAcc["Supplier Name"].ToString();
                                     DeliveryAddress.PartyCode = readerAcc["Delivery Address Code"].ToString();
                                     DeliveryAddress.PartyType = "DeliveryAddress";
+                                    int accountNoIndex = readerAcc.GetOrdinal("Account No");
+                                    if (!readerAcc.IsDBNull(accountNoIndex))
+                                    {
+                                        DeliveryAddress.AccountCode = readerAcc["Account No"].ToString();
+                                        DeliveryAddress.AccountName = readerAcc["Account Name"].ToString();
+                                    }
+                                    else
+                                    {
+                                        DeliveryAddress.AccountCode = null;
+                                        DeliveryAddress.AccountName = null;
+                                    }
                                     DeliveryAddress.PartyFullName = readerAcc["Delivery Address Line 2"].ToString() + " " + readerAcc["Delivery Address Line 3"].ToString();
                                     DeliveryAddress.PartyPrimaryContactFullName = readerAcc["Contact Person"].ToString();                                    
                                     DeliveryAddress.PartyPrimaryTelephoneNumber = Regex.Replace(readerAcc["Tel No For Contact Person"].ToString(), @"\D", "");                                    

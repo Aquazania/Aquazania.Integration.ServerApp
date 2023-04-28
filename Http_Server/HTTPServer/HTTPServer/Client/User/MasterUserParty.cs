@@ -109,6 +109,8 @@ namespace Aquazania.Integration.ServerApp.Client.User
                                         user.ParentPartyCode = readerAcc["Account No"].ToString();
                                         user.ParentPartyType = "Customer";
                                         user.ParentPartyFullName = readerAcc["Account Name"].ToString();
+                                        user.AccountCode = readerAcc["Account No"].ToString();
+                                        user.AccountName = readerAcc["Account Name"].ToString();
                                     }
                                     else
                                     {

@@ -104,12 +104,16 @@ namespace Aquazania.Integration.ServerApp.Client.Contract
                                         contract.ParentPartyCode = readerAcc["Account No"].ToString();
                                         contract.ParentPartyType = "Customer";
                                         contract.ParentPartyFullName = readerAcc["Account Name"].ToString();
+                                        contract.AccountCode = readerAcc["Account No"].ToString();
+                                        contract.AccountName = readerAcc["Account Name"].ToString();
                                     }
                                     else
                                     {
                                         contract.ParentPartyCode = null;
                                         contract.ParentPartyType = null;
                                         contract.ParentPartyFullName = null;
+                                        contract.AccountCode = null;
+                                        contract.AccountName = null;
                                     }
                                     contract.PartyCode = readerAcc["Contract No"].ToString();
                                     contract.PartyType = "Contract";
@@ -152,9 +156,9 @@ namespace Aquazania.Integration.ServerApp.Client.Contract
                                + "			   						  ,[Dealt With] "
                                + "                                    ,[Party Type] "
                                + "                                    ,[Response] "
-                               + "                                    ,[Response Detail])"
+                               + "                                    ,[Response Detail]) "
                                + ""
-                               + "SELECT '" + payloadJSON + "', "
+                               + "SELECT '" + payloadJSON.Replace("'", "''") + "', "
                                + "	     '" + DateTime.Now + "', "
                                + "	     0, "
                                + "       'Contract', "

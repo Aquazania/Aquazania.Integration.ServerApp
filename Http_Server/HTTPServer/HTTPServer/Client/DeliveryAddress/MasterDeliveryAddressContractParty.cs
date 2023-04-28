@@ -100,6 +100,12 @@ namespace Aquazania.Integration.ServerApp.Client.DeliveryAddress
                                     Consumable.ParentPartyFullName = readerAcc["Account Name"].ToString();
                                     Consumable.PartyCode = null;
                                     Consumable.PartyType = "DeliveryAddress";
+                                    int accountNoIndex = readerAcc.GetOrdinal("Account No");
+                                    if (!readerAcc.IsDBNull(accountNoIndex))
+                                    {
+                                        Consumable.AccountCode = readerAcc["Account No"].ToString();
+                                        Consumable.AccountName = readerAcc["Account Name"].ToString();
+                                    }
                                     Consumable.PartyFullName = readerAcc["Account Name"].ToString();
                                     Consumable.PartyPrimaryContactFullName = readerAcc["Delivery Address Contact Person"].ToString();
                                     Consumable.PartyPrimaryTelephoneNumber = Regex.Replace(readerAcc["Tel No For Delivery Address Contact Person"].ToString(), @"\D", "");
@@ -141,7 +147,7 @@ namespace Aquazania.Integration.ServerApp.Client.DeliveryAddress
                                + "                                    ,[Response] "
                                + "                                    ,[Response Detail])"
                                + ""
-                               + "SELECT '" + payloadJSON + "', "
+                               + "SELECT '" + payloadJSON.Replace("'", "''") + "', "
                                + "	     '" + DateTime.Now + "', "
                                + "	     0, "
                                + "       'Consumables', "

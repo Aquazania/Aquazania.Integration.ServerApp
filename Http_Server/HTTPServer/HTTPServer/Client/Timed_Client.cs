@@ -77,7 +77,7 @@ namespace HTTPServer.Client
 
             foreach (IMasterLinkedParty linkedParty in masterLinkedParties)
             {
-                await linkedParty.SendMasterLinkedParty(_httpClient, _COM_connectionString);
+                await linkedParty.SendMasterLinkedParty(_httpClient, _COM_connectionString, _DTS_connectionString);
             }
         }
     }

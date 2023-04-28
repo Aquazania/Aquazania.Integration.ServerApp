@@ -10,7 +10,7 @@ namespace Aquazania.Integration.ServerApp.Client.Contact
     {
         public MasterContactLinkedParty(string url) { darielURL = url; }   
         private string darielURL;
-        public async Task SendMasterLinkedParty(ITimed_Client _httpClient, string _COM_connectionString)
+        public async Task SendMasterLinkedParty(ITimed_Client _httpClient, string _COM_connectionString, string _DTS_connectionString)
         {
             using (var connection = new OdbcConnection(_COM_connectionString))
             {
@@ -19,7 +19,7 @@ namespace Aquazania.Integration.ServerApp.Client.Contact
                 {
                     try
                     {
-                        var data = buildMasterLinkObject(connection, transaction, _COM_connectionString);
+                        var data = buildMasterLinkObject(connection, transaction, _COM_connectionString ,_DTS_connectionString);
                         if (data.Count > 0)
                         {
                             var response = await _httpClient.SendAsync(data, darielURL);
@@ -64,7 +64,7 @@ namespace Aquazania.Integration.ServerApp.Client.Contact
                 throw ex;
             }
         }
-        public List<MasterOwnedLinkedContactContract> buildMasterLinkObject(OdbcConnection connection, OdbcTransaction transaction, string _COM_connectionString)
+        public List<MasterOwnedLinkedContactContract> buildMasterLinkObject(OdbcConnection connection, OdbcTransaction transaction, string _COM_connectionString, string _DTS_connectionString)
         {
             List<MasterOwnedLinkedContactContract> contactUpdates = new List<MasterOwnedLinkedContactContract>();
             try
@@ -97,6 +97,13 @@ namespace Aquazania.Integration.ServerApp.Client.Contact
                                     MasterOwnedLinkedContactContract contact = new MasterOwnedLinkedContactContract();
                                     contact.ParentPartyCode = readerAcc["DocumentReferenceCode"].ToString();
                                     contact.ParentPartyType = "Contact";
+                                    using (var connectionAccountInfo = new OdbcConnection(_DTS_connectionString))
+                                    {
+                                        try { }
+                                        catch(OdbcException ex) { throw ex;}
+                                    }
+                                    contact.AccountName = null;
+                                    contact.AccountCode = null;
                                     contact.ContactFullName = readerAcc["ContactName"].ToString() + " " + (!readerAcc.IsDBNull(readerAcc.GetOrdinal("ContactLastName")) ? readerAcc["ContactLastName"].ToString() : "");
                                     contact.PhoneNumber = Regex.Replace(readerAcc["ContactPointValue"].ToString(), @"\D", "");
                                     contact.IsActive = true;
@@ -136,7 +143,7 @@ namespace Aquazania.Integration.ServerApp.Client.Contact
                                + "                                    ,[Response] "
                                + "                                    ,[Response Detail])"
                                + ""
-                               + "SELECT '" + payloadJSON + "', "
+                               + "SELECT '" + payloadJSON.Replace("'", "''") + "', "
                                + "	     '" + DateTime.Now + "', "
                                + "	     0, "
                                + "       'Contact', "
