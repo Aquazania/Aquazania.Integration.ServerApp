@@ -124,7 +124,7 @@ namespace Aquazania.Integration.ServerApp.Client.SupplierDeliveryAddress
                                     {
                                         writer.WriteLine();
                                     }
-                                    File.AppendAllText(filePath, JsonConvert.SerializeObject(DeliveryAddress, Formatting.Indented));
+                                    File.AppendAllText(filePath, JsonConvert.SerializeObject(DeliveryAddress + ",", Formatting.Indented));
                                     DeliveryAddressUpdates.Add(DeliveryAddress);
                                 }
                             }

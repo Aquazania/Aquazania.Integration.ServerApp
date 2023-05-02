@@ -108,7 +108,7 @@ namespace HTTPServer.Client.Customer
                                     {
                                         writer.WriteLine();
                                     }
-                                    File.AppendAllText(filePath, JsonConvert.SerializeObject(customer, Formatting.Indented));
+                                    File.AppendAllText(filePath, JsonConvert.SerializeObject(customer + ",", Formatting.Indented));
                                     customerUpdates.Add(customer); 
                                 }
                             }

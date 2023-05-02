@@ -110,7 +110,7 @@ namespace Aquazania.Integration.ServerApp.Client.Contact
                                     {
                                         writer.WriteLine();
                                     }
-                                    File.AppendAllText(filePath, JsonConvert.SerializeObject(contact, Formatting.Indented));
+                                    File.AppendAllText(filePath, JsonConvert.SerializeObject(contact + ",", Formatting.Indented));
                                     contactUpdates.Add(contact);
                                 }
                             }

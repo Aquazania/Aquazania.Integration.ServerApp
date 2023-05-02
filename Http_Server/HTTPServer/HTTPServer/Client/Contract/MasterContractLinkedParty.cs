@@ -139,7 +139,7 @@ namespace Aquazania.Integration.ServerApp.Client.Contract
                                     {
                                         writer.WriteLine();
                                     }
-                                    File.AppendAllText(filePath, JsonConvert.SerializeObject(contract, Formatting.Indented));
+                                    File.AppendAllText(filePath, JsonConvert.SerializeObject(contract + ",", Formatting.Indented));
                                     prevAccountNo = curAccountNo;
                                 }
                             }

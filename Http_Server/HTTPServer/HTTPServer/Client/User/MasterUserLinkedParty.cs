@@ -144,7 +144,7 @@ namespace Aquazania.Integration.ServerApp.Client.User
                                     {
                                         writer.WriteLine();
                                     }
-                                    File.AppendAllText(filePath, JsonConvert.SerializeObject(user, Formatting.Indented));
+                                    File.AppendAllText(filePath, JsonConvert.SerializeObject(user + ",", Formatting.Indented));
                                     prevAccountNo = curAccountNo;
                                 }
                             }
