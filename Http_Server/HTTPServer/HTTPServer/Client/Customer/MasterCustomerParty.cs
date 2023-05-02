@@ -161,16 +161,19 @@ namespace HTTPServer.Client.Customer
                         int secondBracketIndex = errormessage.IndexOf('[', firstBracketIndex + 1);
                         int secondBracketEndIndex = errormessage.IndexOf(']', secondBracketIndex + 1);
 
-                        string accountno = errormessage.Substring(secondBracketIndex + 1, secondBracketEndIndex - secondBracketIndex - 1);
+                        if (firstBracketIndex != -1 && secondBracketIndex != -1 && secondBracketEndIndex != -1)
+                        {
+                            string accountno = errormessage.Substring(secondBracketIndex + 1, secondBracketEndIndex - secondBracketIndex - 1);
 
-                        string sqlupdate = "UPDATE [Temp Master Party Contract] " +
-                                         "	SET Synced = 0 " +
-                                         "WHERE EntryNo = ( " +
-                                         "    SELECT MAX(EntryNo) " +
-                                         "    FROM [Temp Master Party Contract] " +
-                                         "    WHERE PartyCode = '" + accountno + "')";
-                        var command1 = new OdbcCommand(sqlupdate, connectionAcc);
-                        _ = command1.ExecuteNonQuery();
+                            string sqlupdate = "UPDATE [Temp Master Party Contract] " +
+                                               "	SET Synced = 0 " +
+                                               "WHERE EntryNo = ( " +
+                                               "    SELECT MAX(EntryNo) " +
+                                               "    FROM [Temp Master Party Contract] " +
+                                               "    WHERE PartyCode = '" + accountno + "')";
+                            var command1 = new OdbcCommand(sqlupdate, connectionAcc);
+                            _ = command1.ExecuteNonQuery();
+                        }
                     }
 
                 }
