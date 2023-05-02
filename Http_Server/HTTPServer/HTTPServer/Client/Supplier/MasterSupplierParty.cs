@@ -91,7 +91,7 @@ namespace Aquazania.Integration.ServerApp.Client.Supplier
                                     {
                                         writer.WriteLine();
                                     }
-                                    File.AppendAllText(filePath, JsonConvert.SerializeObject(supplier + ",", Formatting.Indented));
+                                    File.AppendAllText(filePath, JsonConvert.SerializeObject(supplier, Formatting.Indented) + ",");
                                     SupplierUpdates.Add(supplier);
                                 }
                             }

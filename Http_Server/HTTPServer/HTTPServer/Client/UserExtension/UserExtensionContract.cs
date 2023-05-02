@@ -78,12 +78,12 @@ namespace Aquazania.Integration.ServerApp.Client.UserExtension
                                     user.UserName = readerAcc["User Name"].ToString();
                                     user.Extension = readerAcc["PBX Extension"].ToString();
                                     user.Name = readerAcc["First Name"].ToString();
-                                    string filePath = @"C:\Tracking Folder\MasterParty.txt";
+                                    string filePath = @"C:\Tracking Folder\MasterLinkedParty.txt";
                                     using (StreamWriter writer = new StreamWriter(filePath, true))
                                     {
                                         writer.WriteLine();
                                     }
-                                    File.AppendAllText(filePath, JsonConvert.SerializeObject(user + ",", Formatting.Indented));
+                                    File.AppendAllText(filePath, JsonConvert.SerializeObject(user, Formatting.Indented) + ",");
                                     userUpdates.Add(user);
                                 }
                             }

@@ -66,13 +66,13 @@ namespace HTTPServer.Client
 
             List<IMasterLinkedParty> masterLinkedParties = new List<IMasterLinkedParty>()
             {
-                new MasterContactLinkedParty(_darielURLContact),
-                new MasterContractLinkedParty(_darielURLContact),
-                new MasterCustomerLinkedParty(_darielURLContact),
-                new MasterDeliveryAddressLinkedParty(_darielURLContact),
-                new MasterSupplierLinkedParty(_darielURLContact),
-                new MasterSupplierDeliveryAddressLinkedParty(_darielURLContact),
-                new MasterUserLinkedParty(_darielURLContact)
+                new MasterContactLinkedParty(),
+                new MasterContractLinkedParty(),
+                new MasterCustomerLinkedParty(),
+                new MasterDeliveryAddressLinkedParty(),
+                new MasterSupplierLinkedParty(),
+                new MasterSupplierDeliveryAddressLinkedParty(),
+                new MasterUserLinkedParty()
             };
 
             UserExtensionContract users = new UserExtensionContract(_darielURLUsers);
@@ -85,7 +85,7 @@ namespace HTTPServer.Client
 
             foreach (IMasterLinkedParty linkedParty in masterLinkedParties)
             {
-                await linkedParty.SendMasterLinkedParty(_httpClient, _COM_connectionString, _DTS_connectionString);
+                await linkedParty.SendMasterLinkedParty(_httpClient, _COM_connectionString, _DTS_connectionString, _darielURLContact);
             }
 
             isRunning = false;
