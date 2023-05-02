@@ -52,16 +52,16 @@ namespace HTTPServer.Client
 
             List<IMasterParty> masterParties = new List<IMasterParty>()
             {
-                new MasterContactParty(_darielURL),
-                new MasterContractParty(_darielURL),
-                new MasterCustomerParty(_darielURL),
-                new MasterDeliveryAddressParty(_darielURL),
-                new MasterSupplierParty(_darielURL),
-                new MasterSupplierDeliveryAddressParty(_darielURL),
-                new MasterUserParty(_darielURL),
-                new MasterConsumableParty(_darielURL),
-                new MasterConsumableContractParty(_darielURL),
-                new MasterDeliveryAddressContractParty(_darielURL)
+                new MasterContactParty(),
+                new MasterContractParty(),
+                new MasterCustomerParty(),
+                new MasterDeliveryAddressParty(),
+                new MasterSupplierParty(),
+                new MasterSupplierDeliveryAddressParty(),
+                new MasterUserParty(),
+                new MasterConsumableParty(),
+                new MasterConsumableContractParty(),
+                new MasterDeliveryAddressContractParty()
             };
 
             List<IMasterLinkedParty> masterLinkedParties = new List<IMasterLinkedParty>()
@@ -80,7 +80,7 @@ namespace HTTPServer.Client
 
             foreach (IMasterParty party in masterParties)
             {
-                await party.SendMasterParty(_httpClient, _DTS_connectionString);
+                await party.SendMasterParty(_httpClient, _DTS_connectionString, _darielURL);
             }
 
             foreach (IMasterLinkedParty linkedParty in masterLinkedParties)

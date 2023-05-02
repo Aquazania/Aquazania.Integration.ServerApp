@@ -8,9 +8,7 @@ namespace Aquazania.Integration.ServerApp.Client.Consumable
 {
     public class MasterConsumableContractParty : IMasterParty
     {
-        public MasterConsumableContractParty(string url) { darielURL = url; }
-        private string darielURL;
-        public async Task SendMasterParty(ITimed_Client _httpClient, string _DTS_connectionString)
+        public async Task SendMasterParty(ITimed_Client _httpClient, string _DTS_connectionString, string darielURL)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
             {
