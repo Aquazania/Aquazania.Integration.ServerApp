@@ -29,8 +29,7 @@ namespace Aquazania.Integration.ServerApp.Client.SupplierDeliveryAddress
                             UpdateSyncMasterTable(connection, transaction);
                             transaction.Commit();
                             if (result.NumberOfFailures > 0)
-                                if (response.IsSuccessStatusCode)
-                                    LogUnsuccessfulRequest(_DTS_connectionString, data, response, message, result);
+                                LogUnsuccessfulRequest(_DTS_connectionString, data, response, message, result);
                         }
 
                     }
@@ -85,15 +84,15 @@ namespace Aquazania.Integration.ServerApp.Client.SupplierDeliveryAddress
                             try
                             {
                                 connectionAcc.Open();
-                                string sqlAcc = "SELECT * " +
-                                                "       T3.[Account No]" +
+                                string sqlAcc = "SELECT *, " +
+                                                "       T3.[Account No], " +
                                                 "       T3.[Account Name] " + 
                                                 "FROM [Supplier Delivery Address] T1 " +
                                                 "   INNER JOIN [Supplier] T2 ON " +
                                                 "       T1.[Supplier No] = T2.[Supplier No] " +
                                                 "   LEFT JOIN [Customer] T3 ON " + 
-                                                "   T2.[Account No] + T3.[Account No] " + 
-                                                " WHERE [Delivery Address Code] = '" + reader["PartyCode"].ToString() + "'";
+                                                "       T2.[Account No] = T3.[Account No] " + 
+                                                " WHERE T1.[Delivery Address Code] = '" + reader["PartyCode"].ToString() + "'";
                                 var commandAcc = new OdbcCommand(sqlAcc, connectionAcc);
                                 var readerAcc = commandAcc.ExecuteReader();
                                 while (readerAcc.Read())

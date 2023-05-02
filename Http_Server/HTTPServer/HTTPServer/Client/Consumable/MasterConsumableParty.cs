@@ -28,8 +28,7 @@ namespace Aquazania.Integration.ServerApp.Client.Consumable
                             UpdateSyncMasterTable(connection, transaction);
                             transaction.Commit();
                             if (result.NumberOfFailures > 0)
-                                if (response.IsSuccessStatusCode)
-                                    LogUnsuccessfulRequest(_DTS_connectionString, data, response, message, result);
+                                LogUnsuccessfulRequest(_DTS_connectionString, data, response, message, result);
                         }
 
                     }
@@ -86,7 +85,7 @@ namespace Aquazania.Integration.ServerApp.Client.Consumable
                                 connectionAcc.Open();
                                 string sqlAcc = "SELECT T1.*,  " +
                                                 "       T2.[Delivery Address Line 2], " +
-                                                "       T2.[Delivery Address Line 3]" +
+                                                "       T2.[Delivery Address Line 3], " +
                                                 "       T3.[Account Name]" +
                                                 "FROM [Consumables] T1 " +
                                                 "   INNER JOIN [Delivery Address] T2 ON " +

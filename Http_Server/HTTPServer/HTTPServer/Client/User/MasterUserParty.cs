@@ -28,8 +28,7 @@ namespace Aquazania.Integration.ServerApp.Client.User
                             UpdateSyncMasterTable(connection, transaction);
                             transaction.Commit();
                             if (result.NumberOfFailures > 0)
-                            if (response.IsSuccessStatusCode)
-                              LogUnsuccessfulRequest(_DTS_connectionString, data, response, message, result);
+                                LogUnsuccessfulRequest(_DTS_connectionString, data, response, message, result);
                         }
                        
                     }

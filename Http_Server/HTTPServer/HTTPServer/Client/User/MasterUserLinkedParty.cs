@@ -102,7 +102,12 @@ namespace Aquazania.Integration.ServerApp.Client.User
                                         {
                                             try
                                             {
-                                                string sqlAccInfo = "SELECT * FROM [User] WHERE [User Name] = '" + readerAcc["DocumentReferenceCode"].ToString() + "'";
+                                                string sqlAccInfo = "SELECT *," +
+                                                                    "       T2.[Account Name] " +
+                                                                    "FROM [User] T1 " +
+                                                                    "  LEFT JOIN [Customer] T2 ON " +
+                                                                    "     T1.[Account No] = T2.[Account No]" +
+                                                                    "WHERE [User Name] = '" + readerAcc["DocumentReferenceCode"].ToString() + "'";
                                                 connectionAccountInfo.Open();
                                                 var commandAccInfo = new OdbcCommand(sqlAccInfo, connectionAccountInfo);
                                                 var readerAccInfo = commandAccInfo.ExecuteReader();
