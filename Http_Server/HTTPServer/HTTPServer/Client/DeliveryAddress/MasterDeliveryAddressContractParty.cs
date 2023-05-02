@@ -107,6 +107,12 @@ namespace Aquazania.Integration.ServerApp.Client.DeliveryAddress
                                     Consumable.PartyPrimaryTelephoneNumber = Regex.Replace(readerAcc["Tel No For Delivery Address Contact Person"].ToString(), @"\D", "");
                                     Consumable.PartyPrimaryCellNumber = Regex.Replace(readerAcc["Cell No For Delivery Address Contact Person"].ToString(), @"\D", "");
                                     Consumable.IsActive = true;
+                                    string filePath = @"C:\Tracking Folder\MasterParty.txt";
+                                    using (StreamWriter writer = new StreamWriter(filePath, true))
+                                    {
+                                        writer.WriteLine();
+                                    }
+                                    File.AppendAllText(filePath, JsonConvert.SerializeObject(Consumable, Formatting.Indented));
                                     ConsumablesUpdates.Add(Consumable);
                                 }
                             }

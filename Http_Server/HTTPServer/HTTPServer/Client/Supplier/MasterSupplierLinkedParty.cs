@@ -134,6 +134,12 @@ namespace Aquazania.Integration.ServerApp.Client.Supplier
                                     supplier.PhoneNumber = Regex.Replace(readerAcc["ContactPointValue"].ToString(), @"\D", "");
                                     supplier.IsActive = true;
                                     supplierUpdates.Add(supplier);
+                                    string filePath = @"C:\Tracking Folder\MasterLinkedParty.txt";
+                                    using (StreamWriter writer = new StreamWriter(filePath, true))
+                                    {
+                                        writer.WriteLine();
+                                    }
+                                    File.AppendAllText(filePath, JsonConvert.SerializeObject(supplier, Formatting.Indented));
                                     prevAccountNo = curAccountNo;
                                 }
                             }

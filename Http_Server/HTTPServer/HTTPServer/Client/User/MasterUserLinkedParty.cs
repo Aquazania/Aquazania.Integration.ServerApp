@@ -139,6 +139,12 @@ namespace Aquazania.Integration.ServerApp.Client.User
                                     user.PhoneNumber = Regex.Replace(readerAcc["ContactPointValue"].ToString(), @"\D", "");
                                     user.IsActive = true;
                                     userUpdates.Add(user);
+                                    string filePath = @"C:\Tracking Folder\MasterLinkedParty.txt";
+                                    using (StreamWriter writer = new StreamWriter(filePath, true))
+                                    {
+                                        writer.WriteLine();
+                                    }
+                                    File.AppendAllText(filePath, JsonConvert.SerializeObject(user, Formatting.Indented));
                                     prevAccountNo = curAccountNo;
                                 }
                             }

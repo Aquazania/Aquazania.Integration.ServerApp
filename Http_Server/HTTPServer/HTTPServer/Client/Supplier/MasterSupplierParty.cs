@@ -118,6 +118,12 @@ namespace Aquazania.Integration.ServerApp.Client.Supplier
                                     supplier.PartyPrimaryTelephoneNumber = Regex.Replace(readerAcc["Telephone No"].ToString(), @"\D", "");                                    
                                     supplier.PartyPrimaryCellNumber = Regex.Replace(readerAcc["Cell Phone No"].ToString(), @"\D", "");
                                     supplier.IsActive = true;
+                                    string filePath = @"C:\Tracking Folder\MasterParty.txt";
+                                    using (StreamWriter writer = new StreamWriter(filePath, true))
+                                    {
+                                        writer.WriteLine();
+                                    }
+                                    File.AppendAllText(filePath, JsonConvert.SerializeObject(supplier, Formatting.Indented));
                                     SupplierUpdates.Add(supplier);
                                 }
                             }
