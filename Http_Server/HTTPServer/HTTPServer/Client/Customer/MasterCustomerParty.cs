@@ -96,8 +96,8 @@ namespace HTTPServer.Client.Customer
                                     customer.ParentPartyFullName = null;
                                     customer.PartyCode = readerAcc["Account No"].ToString();
                                     customer.PartyType = "Customer";
-                                    customer.AccountCode = null;
-                                    customer.AccountName = null;
+                                    customer.AccountCode = readerAcc["Account No"].ToString();
+                                    customer.AccountName = readerAcc["Account Name"].ToString();
                                     customer.PartyFullName = readerAcc["Account Name"].ToString();
                                     customer.PartyPrimaryContactFullName = readerAcc["Creditors Clerk"].ToString();
                                     customer.PartyPrimaryTelephoneNumber = Regex.Replace(readerAcc["Telephone No"].ToString(), @"\D", "");
