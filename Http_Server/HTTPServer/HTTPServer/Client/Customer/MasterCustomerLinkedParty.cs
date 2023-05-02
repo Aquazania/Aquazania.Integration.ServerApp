@@ -4,7 +4,9 @@ using Newtonsoft.Json;
 using System.Data.Odbc;
 using System.Diagnostics.Contracts;
 using System.Net.Http;
+using Aquazania.Integration.ServerApp.Factory;
 using System.Text.RegularExpressions;
+using System;
 
 namespace HTTPServer.Client.Customer
 {
@@ -26,17 +28,12 @@ namespace HTTPServer.Client.Customer
                         {
                             var response = await _httpClient.SendAsync(data, darielURL);
                             string message = await response.Content.ReadAsStringAsync();
-                            if (response.IsSuccessStatusCode)
-                            {
-                                UpdateSyncLinkMasterTable(connection, transaction);
-                            }
-                            else
-                            {
-                                LogUnsuccessfulRequest(data, response, message, _COM_connectionString);
-                            }
+                            DarielResponse result = JsonConvert.DeserializeObject<DarielResponse>(message);
+                            UpdateSyncLinkMasterTable(connection, transaction);
+                            transaction.Commit();
+                            if (result.NumberOfFailures > 0)
+                             LogUnsuccessfulRequest(data, response, message, _COM_connectionString, result); 
                         }
-
-                        transaction.Commit();
                     }
                     catch (Exception ex)
                     {
@@ -102,20 +99,6 @@ namespace HTTPServer.Client.Customer
                                 {
                                     MasterOwnedLinkedContactContract customer = new MasterOwnedLinkedContactContract();
                                     string curAccountNo = readerAcc["DocumentReferenceCode"].ToString();
-                                    //using (var connectiontest = new OdbcConnection(_COM_connectionString))
-                                    //{
-                                    //    try 
-                                    //    {
-                                    //        connectiontest.Open();
-                                    //        string sqltest = "INSERT INTO [attemptedentry]([Acc] "
-                                    //                        + "  							,[time]) "
-                                    //                        + "SELECT '" + readerAcc["DocumentReferenceCode"].ToString() + "', "
-                                    //                        + "		'" + DateTime.Now + "'";
-                                    //        var commandtest = new OdbcCommand(sqltest, connectiontest);
-                                    //        _ = commandtest.ExecuteNonQuery();
-                                    //    }
-                                    //    catch (OdbcException ex) { throw ex; }
-                                    //}
                                     if (prevAccountNo != curAccountNo)
                                     {
                                         using (var connectionAccountInfo = new OdbcConnection(_DTS_connectionString))
@@ -154,6 +137,12 @@ namespace HTTPServer.Client.Customer
                                     customer.PhoneNumber = Regex.Replace(readerAcc["ContactPointValue"].ToString(), @"\D", "");
                                     customer.IsActive = true;
                                     customerUpdates.Add(customer);
+                                    string filePath = @"C:\Tracking Folder\MasterLinkedParty.txt";
+                                    using (StreamWriter writer = new StreamWriter(filePath, true))
+                                    {
+                                        writer.WriteLine();
+                                    }
+                                    File.AppendAllText(filePath, JsonConvert.SerializeObject(customer, Formatting.Indented));
                                     prevAccountNo = curAccountNo;
                                 }
                             }
@@ -176,7 +165,7 @@ namespace HTTPServer.Client.Customer
             }
             
         }
-        public void LogUnsuccessfulRequest(List<MasterOwnedLinkedContactContract> payload, HttpResponseMessage response, string failedContracts, string _COM_connectionString)
+        public void LogUnsuccessfulRequest(List<MasterOwnedLinkedContactContract> payload, HttpResponseMessage response, string failedContracts, string _COM_connectionString, DarielResponse message)
         {
             using (var connectionAcc = new OdbcConnection(_COM_connectionString))
             {
@@ -199,6 +188,25 @@ namespace HTTPServer.Client.Customer
                                + "       '" + failedContracts.Replace("'", "''") + "'";
                     var command = new OdbcCommand(sql, connectionAcc);
                     int rows = command.ExecuteNonQuery();
+
+                    foreach (var error in message.errors)
+                    {
+                        string errormessage = error.ToString();
+                        int firstBracketIndex = errormessage.IndexOf('[');
+                        int secondBracketIndex = errormessage.IndexOf('[', firstBracketIndex + 1);
+                        int secondBracketEndIndex = errormessage.IndexOf(']', secondBracketIndex + 1);
+
+                        string accountno = errormessage.Substring(secondBracketIndex + 1, secondBracketEndIndex - secondBracketIndex - 1);
+
+                        string sqlupdate = "UPDATE [Temp Master Party Contract] " +
+                                         "	SET Synced = 0 " +
+                                         "WHERE EntryNo = ( " +
+                                         "    SELECT MAX(EntryNo) " +
+                                         "    FROM [Temp Master Party Contract] " +
+                                         "    WHERE PartyCode = '" + accountno + "')";
+                        var command1 = new OdbcCommand(sqlupdate, connectionAcc);
+                        _ = command1.ExecuteNonQuery();
+                    }
                 }
                 catch (OdbcException ex)
                 {

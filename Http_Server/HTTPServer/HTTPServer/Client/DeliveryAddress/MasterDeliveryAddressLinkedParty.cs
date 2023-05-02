@@ -1,4 +1,5 @@
-﻿using Aquazania.Telephony.Integration.Models;
+﻿using Aquazania.Integration.ServerApp.Factory;
+using Aquazania.Telephony.Integration.Models;
 using HTTPServer.Client;
 using Newtonsoft.Json;
 using System.Data.Odbc;
@@ -25,17 +26,12 @@ namespace Aquazania.Integration.ServerApp.Client.DeliveryAddress
                         {
                             var response = await _httpClient.SendAsync(data, darielURL);
                             string message = await response.Content.ReadAsStringAsync();
-                            if (response.IsSuccessStatusCode)
-                            {
-                                UpdateSyncLinkMasterTable(connection, transaction);
-                            }
-                            else
-                            {
-                                LogUnsuccessfulRequest(data, response, message, _COM_connectionString);
-                            }
+                            DarielResponse result = JsonConvert.DeserializeObject<DarielResponse>(message);
+                            UpdateSyncLinkMasterTable(connection, transaction);
+                            transaction.Commit();
+                            if (result.NumberOfFailures > 0)
+                                LogUnsuccessfulRequest(data, response, message, _COM_connectionString, result);
                         }
-
-                        transaction.Commit();
                     }
                     catch (Exception ex)
                     {
@@ -166,7 +162,7 @@ namespace Aquazania.Integration.ServerApp.Client.DeliveryAddress
             }
             
         }
-        public void LogUnsuccessfulRequest(List<MasterOwnedLinkedContactContract> payload, HttpResponseMessage response, string failedContracts, string _COM_connectionString)
+        public void LogUnsuccessfulRequest(List<MasterOwnedLinkedContactContract> payload, HttpResponseMessage response, string failedContracts, string _COM_connectionString, DarielResponse message)
         {
             using (var connectionAcc = new OdbcConnection(_COM_connectionString))
             {
@@ -189,6 +185,25 @@ namespace Aquazania.Integration.ServerApp.Client.DeliveryAddress
                                + "       '" + failedContracts.Replace("'", "''") + "'";
                     var command = new OdbcCommand(sql, connectionAcc);
                     int rows = command.ExecuteNonQuery();
+
+                    foreach (var error in message.errors)
+                    {
+                        string errormessage = error.ToString();
+                        int firstBracketIndex = errormessage.IndexOf('[');
+                        int secondBracketIndex = errormessage.IndexOf('[', firstBracketIndex + 1);
+                        int secondBracketEndIndex = errormessage.IndexOf(']', secondBracketIndex + 1);
+
+                        string accountno = errormessage.Substring(secondBracketIndex + 1, secondBracketEndIndex - secondBracketIndex - 1);
+
+                        string sqlupdate = "UPDATE [Temp Master Party Contract] " +
+                                         "	SET Synced = 0 " +
+                                         "WHERE EntryNo = ( " +
+                                         "    SELECT MAX(EntryNo) " +
+                                         "    FROM [Temp Master Party Contract] " +
+                                         "    WHERE PartyCode = '" + accountno + "')";
+                        var command1 = new OdbcCommand(sqlupdate, connectionAcc);
+                        _ = command1.ExecuteNonQuery();
+                    }
                 }
                 catch (OdbcException ex)
                 {
