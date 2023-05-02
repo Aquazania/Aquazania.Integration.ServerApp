@@ -45,6 +45,7 @@ namespace Aquazania.Integration.ServerApp.Client
                 {
                     connectionAcc.Open();
                     string payloadJSON = JsonConvert.SerializeObject(payload);
+                    string partytype = payload[1].PartyType;
                     string sql = "INSERT INTO  [Temp Failed Requests] ([Payload Sent] "
                                + "			   						  ,[Time Sent] "
                                + "			   						  ,[Dealt With] "
@@ -55,7 +56,7 @@ namespace Aquazania.Integration.ServerApp.Client
                                + "SELECT '" + payloadJSON + "', "
                                + "	     '" + DateTime.Now + "', "
                                + "	     0, "
-                               + "       'User', "
+                               + "       '" + partytype + "', "
                                + "       " + (int)response.StatusCode + ", "
                                + "       '" + failedContracts.Replace("'", "''") + "'";
                     var command = new OdbcCommand(sql, connectionAcc);
