@@ -15,6 +15,10 @@ namespace HTTPServer.Controllers
         [HttpPost(nameof(PostParty))]
         public async Task<IActionResult> PostParty([FromBody] List<ChangedPartyContactContract> parties)
         {
+            var configuration = new ConfigurationBuilder()
+                                    .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+                                    .AddJsonFile("appsettings.json", optional: true)
+                                    .Build();
             int successes = 0;
             List<Error> errors = new List<Error>(); ;
             foreach (var party in parties)
@@ -23,7 +27,7 @@ namespace HTTPServer.Controllers
                 try
                 {
                     var convertor = PartyFactory.Create(party);
-                    Task<List<string>> tasks = convertor.Convert(party);
+                    Task<List<string>> tasks = convertor.Convert(party, configuration);
                     Validationerrors = await tasks;
                 }
                 catch (Exception ex)

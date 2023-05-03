@@ -5,31 +5,13 @@ using System.Data.Odbc;
 
 namespace Aquazania.Integration.ServerApp.Factory.MasterPartyContract.Impl
 {
-    public class ConsumableParty : IPartyConvertor
+    public class ConsumableParty : AbsParty
     {
-        private string _DTS_connectionString;
-        public ConsumableParty(IConfiguration configuration)
-        {
-            _DTS_connectionString = configuration.GetConnectionString("DTS_Connection");
-        }
-        public async Task<List<string>> Convert(ChangedPartyContactContract party)
-        {
-            int rows = 0;
-            List<string> errors = SanityCheck(party);
-            if (errors.Count() == 0)
-                if (ValidateParty(party))
-                    _ = UpdateRequired(party) > 0;
-                else
-                {
-                    errors.Add("Party Code Was Not Found In Database");
-                }
-            return errors;
-        }
-        public int PerformUpdate(string updatedField, string oldValue, string newValue, ChangedPartyContactContract party)
+        public override int PerformUpdate(string updatedField, string oldValue, string newValue, ChangedPartyContactContract party, string _DTS_connectionString)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
             {
-                EnterHistoryRecord(updatedField, oldValue, newValue, party.PartyCode, party.User.UserName);
+                EnterHistoryRecord(updatedField, oldValue, newValue, party.PartyCode, party.User.UserName, _DTS_connectionString);
                 try
                 {
                     connection.Open();
@@ -45,7 +27,7 @@ namespace Aquazania.Integration.ServerApp.Factory.MasterPartyContract.Impl
                 }
             }
         }
-        public int UpdateRequired(ChangedPartyContactContract party)
+        public override int UpdateRequired(ChangedPartyContactContract party, string _DTS_connectionString)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
             {
@@ -62,17 +44,17 @@ namespace Aquazania.Integration.ServerApp.Factory.MasterPartyContract.Impl
                             rows += PerformUpdate("Consumables Contact Person",
                                                     reader["Consumables Contact Person"].ToString(),
                                                     party.PartyPrimaryContactFullName,
-                                                    party);
+                                                    party, _DTS_connectionString);
                         if (party.PartyPrimaryTelephoneNumber != reader["Tel No For Consumables Contact Person"].ToString())
                             rows += PerformUpdate("Tel No For Consumables Contact Person",
                                                     reader["Tel No For Consumables Contact Person"].ToString(),
                                                     party.PartyPrimaryTelephoneNumber,
-                                                    party);
+                                                    party, _DTS_connectionString);
                         if (party.PartyPrimaryCellNumber != reader["Cell No For Consumables Contact Person"].ToString())
                             rows += PerformUpdate("Cell No For Consumables Contact Person",
                                                     reader["Cell No For Consumables Contact Person"].ToString(),
                                                     party.PartyPrimaryCellNumber,
-                                                    party);
+                                                    party, _DTS_connectionString);
                     }
                     return rows;
                 }
@@ -82,7 +64,7 @@ namespace Aquazania.Integration.ServerApp.Factory.MasterPartyContract.Impl
                 }
             }
         }
-        public bool ValidateParty(ChangedPartyContactContract party)
+        public override bool ValidateParty(ChangedPartyContactContract party, string _DTS_connectionString)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
             {
@@ -107,7 +89,7 @@ namespace Aquazania.Integration.ServerApp.Factory.MasterPartyContract.Impl
                 }
             }
         }
-        public void EnterHistoryRecord(string updatedField, string oldValue, string newValue, string deliveryAddressCode, string userName)
+        public void EnterHistoryRecord(string updatedField, string oldValue, string newValue, string deliveryAddressCode, string userName, string _DTS_connectionString)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
             {
@@ -145,7 +127,7 @@ namespace Aquazania.Integration.ServerApp.Factory.MasterPartyContract.Impl
                 }
             }
         }
-        public List<string> SanityCheck(ChangedPartyContactContract party)
+        public override List<string> SanityCheck(ChangedPartyContactContract party, string _DTS_connectionString)
         {
             List<string> result = new List<string>();
             //Basic Checks

@@ -11,7 +11,6 @@ namespace Aquazania.Integration.ServerApp.Factory.MasterLinkedPartyContract
             string _COM_connectionString = configuration.GetConnectionString("Communicator_Connection");
             string _DTS_connectionString = configuration.GetConnectionString("DTS_Connection");
 
-            int rows = 0;
             List<string> errors = SanityCheck(party, _DTS_connectionString);
             if (errors.Count() == 0)
                 if (ValidateParty(party, _COM_connectionString, _DTS_connectionString) == 1)

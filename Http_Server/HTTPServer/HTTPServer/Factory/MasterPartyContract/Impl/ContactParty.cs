@@ -1,30 +1,13 @@
-﻿using Aquazania.Telephony.Integration.Models;
+﻿using Aquazania.Integration.ServerApp.Factory.MasterPartyContract;
+using Aquazania.Telephony.Integration.Models;
 using Microsoft.Extensions.Configuration;
 using System.Data.Odbc;
 
 namespace HTTPServer.Factory.MasterPartyContract.Impl
 {
-    public class ContactParty : IPartyConvertor
+    public class ContactParty : AbsParty
     {
-        private string _DTS_connectionString;
-        public ContactParty(IConfiguration configuration)
-        {
-            _DTS_connectionString = configuration.GetConnectionString("DTS_Connection");
-        }
-        public async Task<List<string>> Convert(ChangedPartyContactContract party)
-        {
-            int rows = 0;
-            List<string> errors = SanityCheck(party);
-            if (errors.Count() == 0)
-                if (ValidateParty(party))
-                    _ = UpdateRequired(party) > 0;
-                else
-                {
-                    errors.Add("Party Code Was Not Found In Database");
-                }
-            return errors;
-        }
-        public int PerformUpdate(string updatedField, string oldValue, string newValue, ChangedPartyContactContract party)
+        public override int PerformUpdate(string updatedField, string oldValue, string newValue, ChangedPartyContactContract party, string _DTS_connectionString)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
             {
@@ -43,7 +26,7 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
                 }
             }
         }
-        public int UpdateRequired(ChangedPartyContactContract party)
+        public override int UpdateRequired(ChangedPartyContactContract party, string _DTS_connectionString)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
             {
@@ -60,17 +43,17 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
                             rows += PerformUpdate("Contact Person",
                                                     reader["Contact Person"].ToString(),
                                                     party.PartyPrimaryContactFullName,
-                                                    party);
+                                                    party, _DTS_connectionString);
                         if (party.PartyPrimaryTelephoneNumber != reader["Telephone No"].ToString())
                             rows += PerformUpdate("Telephone No",
                                                     reader["Telephone No"].ToString(),
                                                     party.PartyPrimaryTelephoneNumber,
-                                                    party);
+                                                    party, _DTS_connectionString);
                         if (party.PartyPrimaryCellNumber != reader["Cell Phone No"].ToString())
                             rows += PerformUpdate("Cell Phone No",
                                                     reader["Cell Phone No"].ToString(),
                                                     party.PartyPrimaryCellNumber,
-                                                    party);
+                                                    party, _DTS_connectionString);
                     }
                     return rows;
                 }
@@ -80,7 +63,7 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
                 }
             }
         }
-        public bool ValidateParty(ChangedPartyContactContract party)
+        public override bool ValidateParty(ChangedPartyContactContract party, string _DTS_connectionString)
         {
             using (var connection = new OdbcConnection(_DTS_connectionString))
             {
@@ -105,7 +88,7 @@ namespace HTTPServer.Factory.MasterPartyContract.Impl
                 }
             }
         }
-        public List<string> SanityCheck(ChangedPartyContactContract party)
+        public override List<string> SanityCheck(ChangedPartyContactContract party, string _DTS_connectionString)
         {
             List<string> result = new List<string>();
             //Basic Checks
