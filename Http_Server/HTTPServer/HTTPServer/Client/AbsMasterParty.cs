@@ -2,6 +2,7 @@
 using HTTPServer.Client;
 using Newtonsoft.Json;
 using System.Data.Odbc;
+using System.Transactions;
 
 namespace Aquazania.Integration.ServerApp.Client
 {
@@ -27,11 +28,11 @@ namespace Aquazania.Integration.ServerApp.Client
                             if (result.NumberOfFailures > 0)
                                 LogUnsuccessfulRequest(_DTS_connectionString, data, response, message, result);
                         }
-
                     }
                     catch (Exception ex)
                     {
-                        transaction.Rollback();
+                        if (Transaction.Current != null)
+                            transaction.Rollback();
                         throw;
                     }
                 }

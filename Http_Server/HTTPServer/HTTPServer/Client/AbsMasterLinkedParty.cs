@@ -2,11 +2,42 @@
 using HTTPServer.Client;
 using Newtonsoft.Json;
 using System.Data.Odbc;
+using System.Transactions;
 
 namespace Aquazania.Integration.ServerApp.Client
 {
     public abstract class AbsMasterLinkedParty : IMasterLinkedParty
     {
+        public async Task SendMasterLinkedParty(ITimed_Client _httpClient, string _COM_connectionString, string _DTS_connectionString, string darielURL)
+        {
+            using (var connection = new OdbcConnection(_COM_connectionString))
+            {
+                await connection.OpenAsync();
+                using (var transaction = connection.BeginTransaction())
+                {
+                    try
+                    {
+                        var data = buildMasterLinkObject(connection, transaction, _COM_connectionString, _DTS_connectionString);
+                        if (data.Count > 0)
+                        {
+                            var response = await _httpClient.SendAsync(data, darielURL);
+                            string message = await response.Content.ReadAsStringAsync();
+                            DarielResponse result = JsonConvert.DeserializeObject<DarielResponse>(message);
+                            UpdateSyncLinkMasterTable(connection, transaction);
+                            transaction.Commit();
+                            if (result.NumberOfFailures > 0)
+                                LogUnsuccessfulRequest(data, response, message, _COM_connectionString, result);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (Transaction.Current != null)
+                            transaction.Rollback();
+                        throw;
+                    }
+                }
+            }
+        }
         public void LogUnsuccessfulRequest(List<MasterOwnedLinkedContactContract> payload, HttpResponseMessage response, string failedContracts, string _COM_connectionString, DarielResponse message)
         {
             using (var connectionAcc = new OdbcConnection(_COM_connectionString))
@@ -56,35 +87,6 @@ namespace Aquazania.Integration.ServerApp.Client
                 catch (OdbcException ex)
                 {
                     throw ex;
-                }
-            }
-        }
-        public async Task SendMasterLinkedParty(ITimed_Client _httpClient, string _COM_connectionString, string _DTS_connectionString, string darielURL)
-        {
-            using (var connection = new OdbcConnection(_COM_connectionString))
-            {
-                await connection.OpenAsync();
-                using (var transaction = connection.BeginTransaction())
-                {
-                    try
-                    {
-                        var data = buildMasterLinkObject(connection, transaction, _COM_connectionString, _DTS_connectionString);
-                        if (data.Count > 0)
-                        {
-                            var response = await _httpClient.SendAsync(data, darielURL);
-                            string message = await response.Content.ReadAsStringAsync();
-                            DarielResponse result = JsonConvert.DeserializeObject<DarielResponse>(message);
-                            UpdateSyncLinkMasterTable(connection, transaction);
-                            transaction.Commit();
-                            if (result.NumberOfFailures > 0)
-                                LogUnsuccessfulRequest(data, response, message, _COM_connectionString, result);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        transaction.Rollback();
-                        throw;
-                    }
                 }
             }
         }
