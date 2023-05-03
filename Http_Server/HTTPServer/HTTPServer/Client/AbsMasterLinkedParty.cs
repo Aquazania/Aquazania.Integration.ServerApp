@@ -75,10 +75,9 @@ namespace Aquazania.Integration.ServerApp.Client
                             string accountno = errormessage.Substring(secondBracketIndex + 1, secondBracketEndIndex - secondBracketIndex - 1);
                             string sqlupdate = "UPDATE [Temp Master Party Contract] " +
                                                "	SET Synced = 0 " +
-                                               "WHERE EntryNo = ( " +
-                                               "    SELECT MAX(EntryNo) " +
-                                               "    FROM [Temp Master Party Contract] " +
-                                               "    WHERE PartyCode = '" + accountno + "')";
+                                               "WHERE EntryNo = (SELECT MAX(EntryNo) " +
+                                               "                 FROM [Temp Master Party Contract] " +
+                                               "                 WHERE PartyCode = '" + accountno + "')";
                             var command1 = new OdbcCommand(sqlupdate, connectionAcc);
                             _ = command1.ExecuteNonQuery();
                         }

@@ -12,11 +12,6 @@ namespace HTTPServer.Factory.MasterLinkedPartyContract
 
         public static ILinkedPartyConvertor Create(ChangedLinkedContactContract party)
         {
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-                .AddJsonFile("appsettings.json", optional: true)
-                .Build();
-
             if (!Enum.TryParse(party.ParentPartyType, out PartyTypes partyType))
             {
                 throw new NotSupportedException($"Party type {party.ParentPartyType} is not supported.");
@@ -25,17 +20,17 @@ namespace HTTPServer.Factory.MasterLinkedPartyContract
             switch (partyType)
             {
                 case PartyTypes.Customer:
-                    return new LinkedCustomerParty(configuration);
+                    return new LinkedCustomerParty();
                 case PartyTypes.Contact:
-                    return new LinkedContactParty(configuration);
+                    return new LinkedContactParty();
                 case PartyTypes.Contract:
-                    return new LinkedContractParty(configuration);
+                    return new LinkedContractParty();
                 case PartyTypes.DeliveryAddress:
-                    return new LinkedDeliveryAddressParty(configuration);
+                    return new LinkedDeliveryAddressParty();
                 case PartyTypes.Supplier:  
-                    return new LinkedSupplierParty(configuration);
+                    return new LinkedSupplierParty();
                 case PartyTypes.User: 
-                    return new LinkedUserParty(configuration);
+                    return new LinkedUserParty();
                 default:
                     throw new NotSupportedException($"Party type {partyType} is not supported.");
             }

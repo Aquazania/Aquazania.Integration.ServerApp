@@ -61,8 +61,7 @@ namespace Aquazania.Integration.ServerApp.Client
                                + "       " + (int)response.StatusCode + ", "
                                + "       '" + failedContracts.Replace("'", "''") + "'";
                     var command = new OdbcCommand(sql, connectionAcc);
-                    int rows = command.ExecuteNonQuery();
-
+                    _ = command.ExecuteNonQuery();
                     foreach (var error in message.errors)
                     {
                         string errormessage = error.ToString();
@@ -76,14 +75,14 @@ namespace Aquazania.Integration.ServerApp.Client
 
                             string sqlupdate = "UPDATE [Temp Master Party Contract] " +
                                                "	SET Synced = 0 " +
-                                               "WHERE EntryNo = ( " +
-                                               "    SELECT MAX(EntryNo) " +
-                                               "    FROM [Temp Master Party Contract] " +
-                                               "    WHERE PartyCode = '" + accountno + "')";
+                                               "WHERE EntryNo = (SELECT MAX(EntryNo) " +
+                                               "                 FROM [Temp Master Party Contract] " +
+                                               "                 WHERE PartyCode = '" + accountno + "')";
                             var command1 = new OdbcCommand(sqlupdate, connectionAcc);
                             _ = command1.ExecuteNonQuery();
                         }
                     }
+
                 }
                 catch (OdbcException ex)
                 {

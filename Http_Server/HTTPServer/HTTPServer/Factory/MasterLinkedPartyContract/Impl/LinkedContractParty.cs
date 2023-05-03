@@ -1,31 +1,12 @@
-﻿using Aquazania.Telephony.Integration.Models;
+﻿using Aquazania.Integration.ServerApp.Factory.MasterLinkedPartyContract;
+using Aquazania.Telephony.Integration.Models;
 using System.Data.Odbc;
 
 namespace HTTPServer.Factory.MasterLinkedPartyContract.Impl
 {
-    public class LinkedContractParty : ILinkedPartyConvertor
+    public class LinkedContractParty : AbsLinkedParty
     {
-        private string _COM_connectionString;
-        private string _DTS_connectionString;
-        public LinkedContractParty(IConfiguration configuration)
-        {
-            _COM_connectionString = configuration.GetConnectionString("Communicator_Connection");
-            _DTS_connectionString = configuration.GetConnectionString("DTS_Connection");
-        }
-        public async Task<List<string>> Convert(ChangedLinkedContactContract party)
-        {
-            int rows = 0;
-            List<string> errors = SanityCheck(party);
-            if (errors.Count() == 0)
-                if (ValidateParty(party) == 1)
-                    _ = UpdateRequired(party) > 0;
-                else
-                {
-                    errors.Add("Party Code Was Not Found In Database");
-                }
-            return errors;
-        }
-        public int DoInsert(ChangedLinkedContactContract party, int updatetype = 1)
+        public override int DoInsert(ChangedLinkedContactContract party, string _COM_connectionString, int updatetype = 1)
         {
             using (var connection = new OdbcConnection(_COM_connectionString))
             {
@@ -80,125 +61,7 @@ namespace HTTPServer.Factory.MasterLinkedPartyContract.Impl
                 }
             }
         }
-        public int PerformUpdate(ChangedLinkedContactContract party, int ContactID)
-        {
-            using (var connection = new OdbcConnection(_COM_connectionString))
-            {
-                try
-                {
-                    connection.Open();
-                    string sql = "UPDATE [ContactPoint] "
-                                + "  SET [ContactPointValue] = '" + party.PhoneNumber + "' "
-                                + "WHERE [ContactID] = " + ContactID;
-                    var command = new OdbcCommand(sql, connection);
-                    return command.ExecuteNonQuery();
-                }
-                catch (OdbcException ex)
-                {
-                    throw ex;
-                }
-            }
-        }
-        public List<string> SanityCheck(ChangedLinkedContactContract party)
-        {
-            List<string> result = new List<string>();
-            //Basic Checks
-            if (party.ParentPartyCode?.Equals(null) == true)
-            { result.Add("Parent Party Code Must Not Be Null"); }
-            if (party.ContactFullName?.Equals(null) == true)
-            { result.Add("Contact Full Name Must Not Be Null"); }
-            if (party.PhoneNumber?.Equals(null) == true)
-            { result.Add("Phone No Must Not Be Null"); }
-            else if (party.PhoneNumber.StartsWith("+27"))
-            {
-                party.PhoneNumber = string.Concat("0", party.PhoneNumber.AsSpan(3));
-                if (!party.PhoneNumber.All(char.IsDigit))
-                { result.Add("Phone Number Must Be Digits"); }
-            }
-            if (party.User.UserName?.Equals(null) == true)
-            { result.Add("User Name Cannot Be Null"); }
-            using (var connection = new OdbcConnection(_DTS_connectionString))
-            {
-                try
-                {
-                    connection.Open();
-                    string sql = "SELECT [User Name] FROM [User] WHERE [User Name] = '" + party.User.UserName + "'";
-                    var command = new OdbcCommand(sql, connection);
-                    var reader = command.ExecuteReader();
-                    if (!reader.HasRows)
-                    { result.Add($"User {party.User.UserName} was not found in the database"); }
-                }
-                catch (OdbcException ex)
-                {
-                    throw ex;
-                }
-            }
-            return result;
-        }
-        public int UpdateRequired(ChangedLinkedContactContract party, int updatetype = 1)
-        {
-            using (var connection = new OdbcConnection(_COM_connectionString))
-            {
-                try
-                {
-                    string sql = "SELECT  v.ContactPointValue, "
-                                + "		  v.ContactPointTypeID, "
-                                + "		  cpt.[Description], "
-                                + "		  max(v.ContactID) ContactID, "
-                                + "		  v.ContactName, "
-                                + "		  v.ContactLastName, "
-                                + "		  v.JobDescription, "
-                                + "		  v.SupplierOrdersContact "
-                                + "FROM  viewContactDocumentReference V "
-                                + "	INNER JOIN ContactPointType cpt on "
-                                + "		cpt.ContactPointTypeID = v.ContactPointTypeID "
-                                + "	INNER JOIN	DocumentReference dr ON "
-                                + "		v.ExternalReferenceID = dr.DocumentReferenceID AND "
-                                + "		dr.DocumentReferenceTypeID = 2 AND "
-                                + $"		dr.DocumentReferenceCode = '{party.ParentPartyCode}' "
-                                + "WHERE v.ContactPointTypeID = isnull(2, v.ContactPointTypeID) "
-                                + "GROUP BY v.ContactPointValue, "
-                                + "		   v.ContactPointTypeID, "
-                                + "		   cpt.[Description], "
-                                + "		   v.ContactName, "
-                                + "		   v.ContactLastName, "
-                                + "		   v.JobDescription, "
-                                + "		   v.SupplierOrdersContact ";
-                    var commandContacts = new OdbcCommand(sql, connection);
-                    var readerContacts = commandContacts.ExecuteReader();
-                    if (readerContacts.HasRows)
-                    {
-                        while (readerContacts.Read())
-                        {
-                            if (party.ContactFullName == readerContacts["ContactName"].ToString())
-                            {
-                                if (party.PhoneNumber == readerContacts["ContactPointValue"].ToString())
-                                    return 0;
-                                else
-                                    return PerformUpdate(party, System.Convert.ToInt32(readerContacts["ContactID"].ToString()));
-                            }
-                            if (party.ContactFullName == readerContacts["ContactName"] + " " + readerContacts["ContactLastName"])
-                            {
-                                if (party.PhoneNumber == readerContacts["ContactPointValue"].ToString())
-                                    return 0;
-                                else
-                                    return PerformUpdate(party, System.Convert.ToInt32(readerContacts["ContactID"].ToString()));
-                            }
-                        }
-                        return DoInsert(party);
-                    }
-                    else
-                    {
-                        return DoInsert(party);
-                    }
-                }
-                catch (OdbcException ex)
-                {
-                    throw ex;
-                }
-            }
-        }
-        public int ValidateParty(ChangedLinkedContactContract party)
+        public override int ValidateParty(ChangedLinkedContactContract party, string _COM_connectionString, string _DTS_connectionString)
         {
             using (var connectionDTS = new OdbcConnection(_DTS_connectionString))
             {
