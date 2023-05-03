@@ -15,6 +15,7 @@ namespace Aquazania.Integration.ServerApp.Client
                 {
                     connectionAcc.Open();
                     string payloadJSON = JsonConvert.SerializeObject(payload);
+                    string partytype = payload[1].ParentPartyType;
                     string sql = "INSERT INTO  [Temp Failed Requests] ([Payload Sent] "
                                + "			   						  ,[Time Sent] "
                                + "			   						  ,[Dealt With] "
@@ -25,7 +26,7 @@ namespace Aquazania.Integration.ServerApp.Client
                                + "SELECT '" + payloadJSON + "', "
                                + "	     '" + DateTime.Now + "', "
                                + "	     0, "
-                               + "       'User', "
+                               + "       '" + partytype + "', "
                                + "       " + (int)response.StatusCode + ", "
                                + "       '" + failedContracts.Replace("'", "''") + "'";
                     var command = new OdbcCommand(sql, connectionAcc);
@@ -41,7 +42,6 @@ namespace Aquazania.Integration.ServerApp.Client
                         if (firstBracketIndex != -1 && secondBracketIndex != -1 && secondBracketEndIndex != -1)
                         {
                             string accountno = errormessage.Substring(secondBracketIndex + 1, secondBracketEndIndex - secondBracketIndex - 1);
-
                             string sqlupdate = "UPDATE [Temp Master Party Contract] " +
                                                "	SET Synced = 0 " +
                                                "WHERE EntryNo = ( " +
