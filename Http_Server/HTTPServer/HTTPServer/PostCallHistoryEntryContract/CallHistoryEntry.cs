@@ -44,20 +44,17 @@ namespace Aquazania.Integration.ServerApp.PostCallHistoryEntryContract
                 { callHistory.IncomingCallNumber = string.Concat("0", callHistory.IncomingCallNumber.AsSpan(3)); }
             }
             else
-            //{ result.Add("Incoming No Cannot Be Null"); }
-            //if (callHistory.OutgoingCallNumber?.Equals(null) == false)
-            //{
-            //    if (callHistory.OutgoingCallNumber.StartsWith("+27"))
-            //    { callHistory.OutgoingCallNumber = string.Concat("0", callHistory.OutgoingCallNumber.AsSpan(3)); }
-            //}
-            //else
-            //{ result.Add("Outgoing No Cannot Be Null"); }
             if (callHistory.IncomingCallNumber?.Equals(null) == false)
                 if (!callHistory.IncomingCallNumber.All(char.IsDigit))
                 { result.Add("Incoming No Must Be Numeric"); }
-            //if (callHistory.OutgoingCallNumber?.Equals(null) == false)
-            //    if (!callHistory.OutgoingCallNumber.All(char.IsDigit))
-            //    { result.Add("Telephone No Must Be Numeric"); }
+            if (callHistory.OutgoingCallNumber?.Equals(null) == false)
+            {
+                if (callHistory.OutgoingCallNumber.StartsWith("+27"))
+                { callHistory.OutgoingCallNumber = string.Concat("0", callHistory.OutgoingCallNumber.AsSpan(3)); }
+            }
+            if (callHistory.OutgoingCallNumber?.Equals(null) == false)
+                if (!callHistory.OutgoingCallNumber.All(char.IsDigit))
+                { result.Add("Outgoing No Must Be Numeric"); }
             if (callHistory.ContactFullName?.Equals(null) == false)
                 if (callHistory.ContactFullName?.Length > 50)
                 { result.Add("Contact full name is limited to 50 characters"); }
