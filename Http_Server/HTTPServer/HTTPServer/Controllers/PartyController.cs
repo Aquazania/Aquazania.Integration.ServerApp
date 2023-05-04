@@ -7,6 +7,7 @@ using System.Data;
 using Aquazania.Integration.ServerApp.Factory;
 using System.Net;
 using Newtonsoft.Json;
+using Aquazania.Integration.ServerApp.Controllers;
 
 namespace HTTPServer.Controllers
 {
@@ -43,6 +44,7 @@ namespace HTTPServer.Controllers
                 }
             }
             var response = new Response(successes, errors.Count(), errors.ToArray());
+            LogAttempt.LogAttemptAtEndPointContract(parties, response, configuration);
             return Content(JsonConvert.SerializeObject(response), "application/json");
         }
         [HttpPost(nameof(PostLinkedParty))]
@@ -76,6 +78,7 @@ namespace HTTPServer.Controllers
                 }
             }
             var response = new Response(successes, errors.Count(), errors.ToArray());
+            LogAttempt.LogAttemptAtEndPointLinkedContract(parties, response, configuration);
             return Content(JsonConvert.SerializeObject(response), "application/json");
         }
         [HttpGet(nameof(ConnectionCheck))]

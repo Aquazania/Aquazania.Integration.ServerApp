@@ -23,6 +23,5 @@ namespace HTTPServer.Client
             };
             return await _httpClient.SendAsync(message).ConfigureAwait(false);
         }
-
     }
 }

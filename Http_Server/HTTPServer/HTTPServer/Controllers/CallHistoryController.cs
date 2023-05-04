@@ -5,6 +5,7 @@ using HTTPServer.Controllers.Base;
 using HTTPServer.Factory.MasterPartyContract;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System.Configuration;
 
 namespace Aquazania.Integration.ServerApp.Controllers
 {
@@ -13,6 +14,10 @@ namespace Aquazania.Integration.ServerApp.Controllers
         [HttpPost(nameof(PostCallHistoryEntry))]
         public async Task<IActionResult> PostCallHistoryEntry([FromBody] List<CallHistoryEntryContract> callHistories)
         {
+            var configuration = new ConfigurationBuilder()
+                                    .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+                                    .AddJsonFile("appsettings.json", optional: true)
+                                    .Build();
             int successes = 0;
             List<Error> errors = new List<Error>(); ;
             foreach (var callResult in callHistories)
@@ -37,6 +42,7 @@ namespace Aquazania.Integration.ServerApp.Controllers
                 }
             }
             var response = new Response(successes, errors.Count(), errors.ToArray());
+            LogAttempt.LogAttemptAtEndPointCallHistory(callHistories, response, configuration);
             return Content(JsonConvert.SerializeObject(response), "application/json");
         }
     }
