@@ -50,6 +50,13 @@ namespace HTTPServer.Client
 
             isRunning = true;
 
+            string filePath = @"C:\Tracking Folder\TimesRan.txt";
+            using (StreamWriter writer = new StreamWriter(filePath, true))
+            {
+                writer.WriteLine();
+            }
+            File.AppendAllText(filePath, "I ran at : " + DateTime.Now);
+
             List<IMasterParty> masterParties = new List<IMasterParty>()
             {
                 new MasterContactParty(),

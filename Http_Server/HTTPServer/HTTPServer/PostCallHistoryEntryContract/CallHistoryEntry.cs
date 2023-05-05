@@ -173,7 +173,7 @@ namespace Aquazania.Integration.ServerApp.PostCallHistoryEntryContract
                                + "	     '" + localTime.AddSeconds(callresult.DurationInSeconds) + "', "
                                + "	     " + direction + ", "
                                + "	     'ANSWERED', "
-                               + "	     NULL, "
+                               + "	     29, "
                                + "	     0, "
                                + "	     null,"
                                + "	     '" + callresult.CallId + "',"
