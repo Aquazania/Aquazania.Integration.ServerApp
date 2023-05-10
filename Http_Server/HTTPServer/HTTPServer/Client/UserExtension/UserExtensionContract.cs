@@ -78,7 +78,7 @@ namespace Aquazania.Integration.ServerApp.Client.UserExtension
                                     user.UserName = readerAcc["User Name"].ToString();
                                     user.Extension = readerAcc["PBX Extension"].ToString();
                                     user.Name = readerAcc["First Name"].ToString();
-                                    string filePath = @"C:\Tracking Folder\MasterLinkedParty.txt";
+                                    string filePath = @"C:\Tracking Folder\UserExtensions.txt";
                                     using (StreamWriter writer = new StreamWriter(filePath, true))
                                     {
                                         writer.WriteLine();

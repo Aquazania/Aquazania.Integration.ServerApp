@@ -75,7 +75,7 @@ namespace Aquazania.Integration.ServerApp.Client.Consumable
                                     Consumable.PartyPrimaryTelephoneNumber = Regex.Replace(readerAcc["Tel No For Consumables Contact Person"].ToString(), @"\D", "");
                                     Consumable.PartyPrimaryCellNumber = Regex.Replace(readerAcc["Cell No For Consumables Contact Person"].ToString(), @"\D", "");
                                     Consumable.IsActive = true;
-                                    string filePath = @"C:\Tracking Folder\MasterParty.txt";
+                                    string filePath = @"C:\Tracking Folder\MasterPartyContractConsumable.txt";
                                     using (StreamWriter writer = new StreamWriter(filePath, true))
                                     {
                                         writer.WriteLine();

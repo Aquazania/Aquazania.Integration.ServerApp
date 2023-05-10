@@ -71,7 +71,7 @@ namespace HTTPServer.Client.Customer
                                     customer.PartyPrimaryTelephoneNumber = Regex.Replace(readerAcc["Telephone No"].ToString(), @"\D", "");
                                     customer.PartyPrimaryCellNumber = Regex.Replace(readerAcc["Cell Phone No"].ToString(), @"\D", "");
                                     customer.IsActive = true;
-                                    string filePath = @"C:\Tracking Folder\MasterParty.txt";
+                                    string filePath = @"C:\Tracking Folder\MasterPartyCustomer.txt";
                                     using (StreamWriter writer = new StreamWriter(filePath, true))
                                     {
                                         writer.WriteLine();

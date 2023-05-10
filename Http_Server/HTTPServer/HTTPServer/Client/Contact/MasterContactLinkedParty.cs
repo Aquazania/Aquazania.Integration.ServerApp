@@ -67,7 +67,7 @@ namespace Aquazania.Integration.ServerApp.Client.Contact
                                     contact.ContactFullName = readerAcc["ContactName"].ToString() + " " + (!readerAcc.IsDBNull(readerAcc.GetOrdinal("ContactLastName")) ? readerAcc["ContactLastName"].ToString() : "");
                                     contact.PhoneNumber = Regex.Replace(readerAcc["ContactPointValue"].ToString(), @"\D", "");
                                     contact.IsActive = true;
-                                    string filePath = @"C:\Tracking Folder\MasterLinkedParty.txt";
+                                    string filePath = @"C:\Tracking Folder\MasterLinkedPartyContact.txt";
                                     using (StreamWriter writer = new StreamWriter(filePath, true))
                                     {
                                         writer.WriteLine();

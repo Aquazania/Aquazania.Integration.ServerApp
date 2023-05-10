@@ -103,7 +103,7 @@ namespace Aquazania.Integration.ServerApp.Client.Supplier
                                     supplier.PhoneNumber = Regex.Replace(readerAcc["ContactPointValue"].ToString(), @"\D", "");
                                     supplier.IsActive = true;
                                     supplierUpdates.Add(supplier);
-                                    string filePath = @"C:\Tracking Folder\MasterLinkedParty.txt";
+                                    string filePath = @"C:\Tracking Folder\MasterLinkedPartySupplier.txt";
                                     using (StreamWriter writer = new StreamWriter(filePath, true))
                                     {
                                         writer.WriteLine();

@@ -106,7 +106,7 @@ namespace HTTPServer.Client.Customer
                                     customer.PhoneNumber = Regex.Replace(readerAcc["ContactPointValue"].ToString(), @"\D", "");
                                     customer.IsActive = true;
                                     customerUpdates.Add(customer);
-                                    string filePath = @"C:\Tracking Folder\MasterLinkedParty.txt";
+                                    string filePath = @"C:\Tracking Folder\MasterLinkedPartyCustomer.txt";
                                     using (StreamWriter writer = new StreamWriter(filePath, true))
                                     {
                                         writer.WriteLine();

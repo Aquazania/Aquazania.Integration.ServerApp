@@ -86,7 +86,7 @@ namespace Aquazania.Integration.ServerApp.Client.Contract
                                     contract.PartyPrimaryTelephoneNumber = Regex.Replace(readerAcc["Telephone No"].ToString(), @"\D", "");
                                     contract.PartyPrimaryCellNumber = Regex.Replace(readerAcc["Cell Phone No"].ToString(), @"\D", "");
                                     contract.IsActive = true;
-                                    string filePath = @"C:\Tracking Folder\MasterParty.txt";
+                                    string filePath = @"C:\Tracking Folder\MasterPartyContract.txt";
                                     using (StreamWriter writer = new StreamWriter(filePath, true))
                                     {
                                         writer.WriteLine();

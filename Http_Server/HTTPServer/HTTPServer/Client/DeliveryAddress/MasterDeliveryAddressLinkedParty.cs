@@ -109,7 +109,7 @@ namespace Aquazania.Integration.ServerApp.Client.DeliveryAddress
                                     DeliveryAddress.PhoneNumber = Regex.Replace(readerAcc["ContactPointValue"].ToString(), @"\D", "");
                                     DeliveryAddress.IsActive = true;
                                     DeliveryAddressUpdates.Add(DeliveryAddress);
-                                    string filePath = @"C:\Tracking Folder\MasterLinkedParty.txt";
+                                    string filePath = @"C:\Tracking Folder\MasterLinkedPartyDeliveryAddress.txt";
                                     using (StreamWriter writer = new StreamWriter(filePath, true))
                                     {
                                         writer.WriteLine();

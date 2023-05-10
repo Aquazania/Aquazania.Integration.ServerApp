@@ -10,6 +10,7 @@ namespace HTTPServer.Client
         public HttpClientWrapper(HttpClient httpClient)
         {
             _httpClient = httpClient;
+            _httpClient.Timeout = Timeout.InfiniteTimeSpan;
         }
         public async Task<HttpResponseMessage> SendAsync(object data, string url)
         {

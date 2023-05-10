@@ -108,7 +108,7 @@ namespace Aquazania.Integration.ServerApp.Client.User
                                     user.PhoneNumber = Regex.Replace(readerAcc["ContactPointValue"].ToString(), @"\D", "");
                                     user.IsActive = true;
                                     userUpdates.Add(user);
-                                    string filePath = @"C:\Tracking Folder\MasterLinkedParty.txt";
+                                    string filePath = @"C:\Tracking Folder\MasterLinkedPartyUser.txt";
                                     using (StreamWriter writer = new StreamWriter(filePath, true))
                                     {
                                         writer.WriteLine();

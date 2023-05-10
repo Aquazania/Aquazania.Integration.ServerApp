@@ -90,7 +90,7 @@ namespace Aquazania.Integration.ServerApp.Client.User
                                     user.PartyPrimaryTelephoneNumber = Regex.Replace(readerAcc["Telephone No"].ToString(), @"\D", "");                                    
                                     user.PartyPrimaryCellNumber = Regex.Replace(readerAcc["Cell Phone No"].ToString(), @"\D", "");
                                     user.IsActive = true;
-                                    string filePath = @"C:\Tracking Folder\MasterParty.txt";
+                                    string filePath = @"C:\Tracking Folder\MasterPartyUser.txt";
                                     using (StreamWriter writer = new StreamWriter(filePath, true))
                                     {
                                         writer.WriteLine();
