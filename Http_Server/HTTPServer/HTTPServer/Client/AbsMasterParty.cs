@@ -46,43 +46,46 @@ namespace Aquazania.Integration.ServerApp.Client
                 {
                     connectionAcc.Open();
                     string payloadJSON = JsonConvert.SerializeObject(payload);
-                    string partytype = payload[1].PartyType;
-                    string sql = "INSERT INTO  [Temp Failed Requests] ([Payload Sent] "
-                               + "			   						  ,[Time Sent] "
-                               + "			   						  ,[Dealt With] "
-                               + "                                    ,[Party Type] "
-                               + "                                    ,[Response] "
-                               + "                                    ,[Response Detail])"
-                               + ""
-                               + "SELECT '" + payloadJSON.Replace("'", "''") + "', "
-                               + "	     '" + DateTime.Now + "', "
-                               + "	     0, "
-                               + "       '" + partytype + "', "
-                               + "       " + (int)response.StatusCode + ", "
-                               + "       '" + failedContracts.Replace("'", "''") + "'";
-                    var command = new OdbcCommand(sql, connectionAcc);
-                    _ = command.ExecuteNonQuery();
-                    foreach (var error in message.errors)
+                    if (!payloadJSON.Equals(null))
                     {
-                        string errormessage = error.ToString();
-                        int firstBracketIndex = errormessage.IndexOf('[');
-                        int secondBracketIndex = errormessage.IndexOf('[', firstBracketIndex + 1);
-                        int secondBracketEndIndex = errormessage.IndexOf(']', secondBracketIndex + 1);
-
-                        if (firstBracketIndex != -1 && secondBracketIndex != -1 && secondBracketEndIndex != -1)
+                        string partytype = payload[0].PartyType;
+                        string sql = "INSERT INTO  [Temp Failed Requests] ([Payload Sent] "
+                                   + "			   						  ,[Time Sent] "
+                                   + "			   						  ,[Dealt With] "
+                                   + "                                    ,[Party Type] "
+                                   + "                                    ,[Response] "
+                                   + "                                    ,[Response Detail])"
+                                   + ""
+                                   + "SELECT '" + payloadJSON.Replace("'", "''") + "', "
+                                   + "	     '" + DateTime.Now + "', "
+                                   + "	     0, "
+                                   + "       '" + partytype + "', "
+                                   + "       " + (int)response.StatusCode + ", "
+                                   + "       '" + failedContracts.Replace("'", "''") + "'";
+                        var command = new OdbcCommand(sql, connectionAcc);
+                        _ = command.ExecuteNonQuery();
+                        foreach (var error in message.errors)
                         {
-                            string accountno = errormessage.Substring(secondBracketIndex + 1, secondBracketEndIndex - secondBracketIndex - 1);
+                            string errormessage = error.ToString();
+                            int firstBracketIndex = errormessage.IndexOf('[');
+                            int secondBracketIndex = errormessage.IndexOf('[', firstBracketIndex + 1);
+                            int secondBracketEndIndex = errormessage.IndexOf(']', secondBracketIndex + 1);
 
-                            string sqlupdate = "UPDATE [Temp Master Party Contract] " +
-                                               "	SET Synced = 0 " +
-                                               "WHERE EntryNo = (SELECT MAX(EntryNo) " +
-                                               "                 FROM [Temp Master Party Contract] " +
-                                               "                 WHERE PartyCode = '" + accountno + "')";
-                            var command1 = new OdbcCommand(sqlupdate, connectionAcc);
-                            _ = command1.ExecuteNonQuery();
+                            if (firstBracketIndex != -1 && secondBracketIndex != -1 && secondBracketEndIndex != -1)
+                            {
+                                string accountno = errormessage.Substring(secondBracketIndex + 1, secondBracketEndIndex - secondBracketIndex - 1);
+
+                                string sqlupdate = "UPDATE [Temp Master Party Contract] " +
+                                                   "	SET Synced = 0 " +
+                                                   "WHERE EntryNo = (SELECT MAX(EntryNo) " +
+                                                   "                 FROM [Temp Master Party Contract] " +
+                                                   "                 WHERE PartyCode = '" + accountno + "')";
+                                var command1 = new OdbcCommand(sqlupdate, connectionAcc);
+                                _ = command1.ExecuteNonQuery();
+                            }
                         }
-                    }
 
+                    }
                 }
                 catch (OdbcException ex)
                 {

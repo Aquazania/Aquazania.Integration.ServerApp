@@ -22,6 +22,7 @@ namespace Aquazania.Integration.ServerApp.Client.Contact
                             + "						  [PartyType] = 'Contact' "
                             + "					GROUP BY PartyCode) ";
                 var command = new OdbcCommand(sql, connection);
+                command.Transaction = transaction;
                 int rows = command.ExecuteNonQuery();
             }
             catch (OdbcException ex)

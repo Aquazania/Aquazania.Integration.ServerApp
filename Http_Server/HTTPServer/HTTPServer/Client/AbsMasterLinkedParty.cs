@@ -46,7 +46,7 @@ namespace Aquazania.Integration.ServerApp.Client
                 {
                     connectionAcc.Open();
                     string payloadJSON = JsonConvert.SerializeObject(payload);
-                    string partytype = payload[1].ParentPartyType;
+                    string partytype = payload[0].ParentPartyType;
                     string sql = "INSERT INTO  [Temp Failed Requests] ([Payload Sent] "
                                + "			   						  ,[Time Sent] "
                                + "			   						  ,[Dealt With] "
