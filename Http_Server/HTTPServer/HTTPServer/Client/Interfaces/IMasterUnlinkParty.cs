@@ -1,11 +1,10 @@
-﻿using Aquazania.Integration.ServerApp.Factory;
-using Aquazania.Telephony.Integration.Models;
+﻿using Aquazania.Telephony.Integration.Models;
 using HTTPServer.Client;
 using System.Data.Odbc;
 
-namespace Aquazania.Integration.ServerApp.Client
+namespace Aquazania.Integration.ServerApp.Client.Interfaces
 {
-    public interface IMasterLinkedParty
+    public interface IMasterUnlinkParty
     {
         public Task SendMasterLinkedParty(ITimed_Client _httpClient, string _COM_connectionString, string _DTS_connectionString, string darielURL);
         public void UpdateSyncLinkMasterTable(OdbcConnection connection, OdbcTransaction transaction);

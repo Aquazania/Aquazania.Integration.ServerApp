@@ -1,16 +1,13 @@
-﻿using Aquazania.Integration.ServerApp.Client;
+﻿using Aquazania.Integration.ServerApp.Factory;
 using Aquazania.Telephony.Integration.Models;
+using HTTPServer.Client;
 using Newtonsoft.Json;
 using System.Data.Odbc;
-using System.Diagnostics.Contracts;
-using System.Net.Http;
-using Aquazania.Integration.ServerApp.Factory;
 using System.Text.RegularExpressions;
-using System;
 
-namespace HTTPServer.Client.Customer
+namespace Aquazania.Integration.ServerApp.Client.Supplier
 {
-    public class MasterCustomerLinkedParty : AbsMasterLinkedParty
+    public class MasterSupplierLinkedParty : AbsMasterLinkedParty
     {
         public override void UpdateSyncLinkMasterTable(OdbcConnection connection, OdbcTransaction transaction)
         {
@@ -18,11 +15,11 @@ namespace HTTPServer.Client.Customer
             {
                 string sql = "UPDATE [Temp Master Party Contract] "
                             + "	SET [Synced] = 1 "
-                            + "WHERE PartyType = 'Customer' AND "
+                            + "WHERE PartyType = 'Supplier' AND "
                             + "	  PartyCode IN (SELECT PartyCode "
                             + "					FROM [Temp Master Party Contract] "
                             + "					WHERE [Synced] = 0 AND "
-                            + "						  [PartyType] = 'Customer' "
+                            + "						  [PartyType] = 'Supplier' "
                             + "					GROUP BY PartyCode) ";
                 var command = new OdbcCommand(sql, connection);
                 command.Transaction = transaction;
@@ -35,13 +32,13 @@ namespace HTTPServer.Client.Customer
         }
         public override List<MasterOwnedLinkedContactContract> buildMasterLinkObject(OdbcConnection connection, OdbcTransaction transaction, string _COM_connectionString, string _DTS_connectionString)
         {
-            List<MasterOwnedLinkedContactContract> customerUpdates = new List<MasterOwnedLinkedContactContract>();
+            List<MasterOwnedLinkedContactContract> supplierUpdates = new List<MasterOwnedLinkedContactContract>();
             try
             {
                 string sql = "SELECT PartyCode "
                             + "FROM [Temp Master Party Contract] "
                             + "WHERE [Synced] = 0 AND "
-                            + "	    [PartyType] = 'Customer' "
+                            + "	    [PartyType] = 'Supplier' "
                             + "GROUP BY PartyCode ";
                 var command = new OdbcCommand(sql, connection);
                 command.Transaction = transaction;
@@ -57,8 +54,8 @@ namespace HTTPServer.Client.Customer
                                 connectionAcc.Open();
                                 string sqlAcc = "SELECT * " +
                                                 "FROM [viewContactDocumentReference] " +
-                                                "WHERE [DocumentReferenceCode] = '" + reader["PartyCode"].ToString() + "'" +
-                                                "  AND [ContactPointTypeID] = 2";
+                                                "WHERE [DocumentReferenceCode] = '" + reader["PartyCode"].ToString() + "' " +
+                                                "  AND [ContactPointTypeID] = 2 ";
                                 var commandAcc = new OdbcCommand(sqlAcc, connectionAcc);
                                 var readerAcc = commandAcc.ExecuteReader();
                                 string prevAccountNo = null;
@@ -66,7 +63,7 @@ namespace HTTPServer.Client.Customer
                                 string accNo = null;
                                 while (readerAcc.Read())
                                 {
-                                    MasterOwnedLinkedContactContract customer = new MasterOwnedLinkedContactContract();
+                                    MasterOwnedLinkedContactContract supplier = new MasterOwnedLinkedContactContract();
                                     string curAccountNo = readerAcc["DocumentReferenceCode"].ToString();
                                     if (prevAccountNo != curAccountNo)
                                     {
@@ -74,7 +71,11 @@ namespace HTTPServer.Client.Customer
                                         {
                                             try
                                             {
-                                                string sqlAccInfo = "SELECT * FROM [Customer] WHERE [Account No] = '" + readerAcc["DocumentReferenceCode"].ToString() + "'";
+                                                string sqlAccInfo = "SELECT * " +
+                                                                    "FROM [Supplier] T1 " +
+                                                                    "    LEFT JOIN [Customer] T2 ON " + 
+                                                                    "       T1.[Account No] = T2.[Account No] " +
+                                                                    "WHERE [Supplier No] = '" + readerAcc["DocumentReferenceCode"].ToString() + "'";
                                                 connectionAccountInfo.Open();
                                                 var commandAccInfo = new OdbcCommand(sqlAccInfo, connectionAccountInfo);
                                                 var readerAccInfo = commandAccInfo.ExecuteReader();
@@ -85,33 +86,33 @@ namespace HTTPServer.Client.Customer
                                                         int accountNoIndex = readerAccInfo.GetOrdinal("Account No");
                                                         if (!readerAccInfo.IsDBNull(accountNoIndex))
                                                         {
-                                                            customer.AccountCode = readerAccInfo["Account No"].ToString();
-                                                            customer.AccountName = readerAccInfo["Account Name"].ToString();
+                                                            supplier.AccountCode = readerAccInfo["Account No"].ToString();
+                                                            supplier.AccountName = readerAccInfo["Account Name"].ToString();
                                                             accNo = readerAccInfo["Account No"].ToString();
                                                             accName = readerAccInfo["Account Name"].ToString();
                                                         }
                                                     }
                                                 }
                                                 else
-                                                { customer.AccountName = null; customer.AccountCode = null; }
+                                                { supplier.AccountName = null; supplier.AccountCode = null; }
                                             }
                                             catch (OdbcException ex) { throw ex; }
                                         }
                                     }
                                     else
-                                    { customer.AccountCode = accNo; customer.AccountName = accName; }
-                                    customer.ParentPartyCode = readerAcc["DocumentReferenceCode"].ToString();
-                                    customer.ParentPartyType = "Customer";
-                                    customer.ContactFullName = readerAcc["ContactName"].ToString() + " " + (!readerAcc.IsDBNull(readerAcc.GetOrdinal("ContactLastName")) ? readerAcc["ContactLastName"].ToString() : "");
-                                    customer.PhoneNumber = Regex.Replace(readerAcc["ContactPointValue"].ToString(), @"\D", "");
-                                    customer.IsActive = true;
-                                    customerUpdates.Add(customer);
-                                    string filePath = @"C:\Tracking Folder\MasterLinkedPartyCustomer.txt";
+                                    { supplier.AccountCode = accNo; supplier.AccountName = accName; }
+                                    supplier.ParentPartyCode = readerAcc["DocumentReferenceCode"].ToString();
+                                    supplier.ParentPartyType = "Supplier";
+                                    supplier.ContactFullName = readerAcc["ContactName"].ToString() + " " + (!readerAcc.IsDBNull(readerAcc.GetOrdinal("ContactLastName")) ? readerAcc["ContactLastName"].ToString() : "");
+                                    supplier.PhoneNumber = Regex.Replace(readerAcc["ContactPointValue"].ToString(), @"\D", "");
+                                    supplier.IsActive = true;
+                                    supplierUpdates.Add(supplier);
+                                    string filePath = @"C:\Tracking Folder\MasterLinkedPartySupplier.txt";
                                     using (StreamWriter writer = new StreamWriter(filePath, true))
                                     {
                                         writer.WriteLine();
                                     }
-                                    File.AppendAllText(filePath, JsonConvert.SerializeObject(customer, Formatting.Indented) + ",");
+                                    File.AppendAllText(filePath, JsonConvert.SerializeObject(supplier, Formatting.Indented) + ",");
                                     prevAccountNo = curAccountNo;
                                 }
                             }
@@ -121,7 +122,7 @@ namespace HTTPServer.Client.Customer
                             }
                         }
                     }
-                    return customerUpdates;
+                    return supplierUpdates;
                 }
                 else
                 {
@@ -134,6 +135,5 @@ namespace HTTPServer.Client.Customer
             }
             
         }
-
     }
 }

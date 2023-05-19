@@ -2,7 +2,7 @@
 using HTTPServer.Client;
 using System.Data.Odbc;
 
-namespace Aquazania.Integration.ServerApp.Client
+namespace Aquazania.Integration.ServerApp.Client.Interfaces
 {
     public interface IMasterParty
     {

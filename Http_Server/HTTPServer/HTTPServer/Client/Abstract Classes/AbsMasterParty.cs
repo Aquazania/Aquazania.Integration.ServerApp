@@ -1,4 +1,5 @@
-﻿using Aquazania.Telephony.Integration.Models;
+﻿using Aquazania.Integration.ServerApp.Client.Interfaces;
+using Aquazania.Telephony.Integration.Models;
 using HTTPServer.Client;
 using Newtonsoft.Json;
 using System.Data.Odbc;

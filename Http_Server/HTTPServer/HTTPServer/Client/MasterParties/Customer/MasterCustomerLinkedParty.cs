@@ -1,13 +1,16 @@
-﻿using Aquazania.Integration.ServerApp.Factory;
+﻿using Aquazania.Integration.ServerApp.Client;
 using Aquazania.Telephony.Integration.Models;
-using HTTPServer.Client;
 using Newtonsoft.Json;
 using System.Data.Odbc;
+using System.Diagnostics.Contracts;
+using System.Net.Http;
+using Aquazania.Integration.ServerApp.Factory;
 using System.Text.RegularExpressions;
+using System;
 
-namespace Aquazania.Integration.ServerApp.Client.Supplier
+namespace HTTPServer.Client.Customer
 {
-    public class MasterSupplierLinkedParty : AbsMasterLinkedParty
+    public class MasterCustomerLinkedParty : AbsMasterLinkedParty
     {
         public override void UpdateSyncLinkMasterTable(OdbcConnection connection, OdbcTransaction transaction)
         {
@@ -15,11 +18,11 @@ namespace Aquazania.Integration.ServerApp.Client.Supplier
             {
                 string sql = "UPDATE [Temp Master Party Contract] "
                             + "	SET [Synced] = 1 "
-                            + "WHERE PartyType = 'Supplier' AND "
+                            + "WHERE PartyType = 'Customer' AND "
                             + "	  PartyCode IN (SELECT PartyCode "
                             + "					FROM [Temp Master Party Contract] "
                             + "					WHERE [Synced] = 0 AND "
-                            + "						  [PartyType] = 'Supplier' "
+                            + "						  [PartyType] = 'Customer' "
                             + "					GROUP BY PartyCode) ";
                 var command = new OdbcCommand(sql, connection);
                 command.Transaction = transaction;
@@ -32,13 +35,13 @@ namespace Aquazania.Integration.ServerApp.Client.Supplier
         }
         public override List<MasterOwnedLinkedContactContract> buildMasterLinkObject(OdbcConnection connection, OdbcTransaction transaction, string _COM_connectionString, string _DTS_connectionString)
         {
-            List<MasterOwnedLinkedContactContract> supplierUpdates = new List<MasterOwnedLinkedContactContract>();
+            List<MasterOwnedLinkedContactContract> customerUpdates = new List<MasterOwnedLinkedContactContract>();
             try
             {
                 string sql = "SELECT PartyCode "
                             + "FROM [Temp Master Party Contract] "
                             + "WHERE [Synced] = 0 AND "
-                            + "	    [PartyType] = 'Supplier' "
+                            + "	    [PartyType] = 'Customer' "
                             + "GROUP BY PartyCode ";
                 var command = new OdbcCommand(sql, connection);
                 command.Transaction = transaction;
@@ -54,8 +57,8 @@ namespace Aquazania.Integration.ServerApp.Client.Supplier
                                 connectionAcc.Open();
                                 string sqlAcc = "SELECT * " +
                                                 "FROM [viewContactDocumentReference] " +
-                                                "WHERE [DocumentReferenceCode] = '" + reader["PartyCode"].ToString() + "' " +
-                                                "  AND [ContactPointTypeID] = 2 ";
+                                                "WHERE [DocumentReferenceCode] = '" + reader["PartyCode"].ToString() + "'" +
+                                                "  AND [ContactPointTypeID] = 2";
                                 var commandAcc = new OdbcCommand(sqlAcc, connectionAcc);
                                 var readerAcc = commandAcc.ExecuteReader();
                                 string prevAccountNo = null;
@@ -63,7 +66,7 @@ namespace Aquazania.Integration.ServerApp.Client.Supplier
                                 string accNo = null;
                                 while (readerAcc.Read())
                                 {
-                                    MasterOwnedLinkedContactContract supplier = new MasterOwnedLinkedContactContract();
+                                    MasterOwnedLinkedContactContract customer = new MasterOwnedLinkedContactContract();
                                     string curAccountNo = readerAcc["DocumentReferenceCode"].ToString();
                                     if (prevAccountNo != curAccountNo)
                                     {
@@ -71,7 +74,7 @@ namespace Aquazania.Integration.ServerApp.Client.Supplier
                                         {
                                             try
                                             {
-                                                string sqlAccInfo = "SELECT * FROM [Supplier] WHERE [Supplier No] = '" + readerAcc["DocumentReferenceCode"].ToString() + "'";
+                                                string sqlAccInfo = "SELECT * FROM [Customer] WHERE [Account No] = '" + readerAcc["DocumentReferenceCode"].ToString() + "'";
                                                 connectionAccountInfo.Open();
                                                 var commandAccInfo = new OdbcCommand(sqlAccInfo, connectionAccountInfo);
                                                 var readerAccInfo = commandAccInfo.ExecuteReader();
@@ -82,33 +85,33 @@ namespace Aquazania.Integration.ServerApp.Client.Supplier
                                                         int accountNoIndex = readerAccInfo.GetOrdinal("Account No");
                                                         if (!readerAccInfo.IsDBNull(accountNoIndex))
                                                         {
-                                                            supplier.AccountCode = readerAccInfo["Account No"].ToString();
-                                                            supplier.AccountName = readerAccInfo["Account Name"].ToString();
+                                                            customer.AccountCode = readerAccInfo["Account No"].ToString();
+                                                            customer.AccountName = readerAccInfo["Account Name"].ToString();
                                                             accNo = readerAccInfo["Account No"].ToString();
                                                             accName = readerAccInfo["Account Name"].ToString();
                                                         }
                                                     }
                                                 }
                                                 else
-                                                { supplier.AccountName = null; supplier.AccountCode = null; }
+                                                { customer.AccountName = null; customer.AccountCode = null; }
                                             }
                                             catch (OdbcException ex) { throw ex; }
                                         }
                                     }
                                     else
-                                    { supplier.AccountCode = accNo; supplier.AccountName = accName; }
-                                    supplier.ParentPartyCode = readerAcc["DocumentReferenceCode"].ToString();
-                                    supplier.ParentPartyType = "Supplier";
-                                    supplier.ContactFullName = readerAcc["ContactName"].ToString() + " " + (!readerAcc.IsDBNull(readerAcc.GetOrdinal("ContactLastName")) ? readerAcc["ContactLastName"].ToString() : "");
-                                    supplier.PhoneNumber = Regex.Replace(readerAcc["ContactPointValue"].ToString(), @"\D", "");
-                                    supplier.IsActive = true;
-                                    supplierUpdates.Add(supplier);
-                                    string filePath = @"C:\Tracking Folder\MasterLinkedPartySupplier.txt";
+                                    { customer.AccountCode = accNo; customer.AccountName = accName; }
+                                    customer.ParentPartyCode = readerAcc["DocumentReferenceCode"].ToString();
+                                    customer.ParentPartyType = "Customer";
+                                    customer.ContactFullName = readerAcc["ContactName"].ToString() + " " + (!readerAcc.IsDBNull(readerAcc.GetOrdinal("ContactLastName")) ? readerAcc["ContactLastName"].ToString() : "");
+                                    customer.PhoneNumber = Regex.Replace(readerAcc["ContactPointValue"].ToString(), @"\D", "");
+                                    customer.IsActive = true;
+                                    customerUpdates.Add(customer);
+                                    string filePath = @"C:\Tracking Folder\MasterLinkedPartyCustomer.txt";
                                     using (StreamWriter writer = new StreamWriter(filePath, true))
                                     {
                                         writer.WriteLine();
                                     }
-                                    File.AppendAllText(filePath, JsonConvert.SerializeObject(supplier, Formatting.Indented) + ",");
+                                    File.AppendAllText(filePath, JsonConvert.SerializeObject(customer, Formatting.Indented) + ",");
                                     prevAccountNo = curAccountNo;
                                 }
                             }
@@ -118,7 +121,7 @@ namespace Aquazania.Integration.ServerApp.Client.Supplier
                             }
                         }
                     }
-                    return supplierUpdates;
+                    return customerUpdates;
                 }
                 else
                 {
@@ -129,7 +132,7 @@ namespace Aquazania.Integration.ServerApp.Client.Supplier
             {
                 throw ex;
             }
-            
         }
+
     }
 }

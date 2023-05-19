@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 using System.Data.Odbc;
 using System.Text.RegularExpressions;
 
-namespace Aquazania.Integration.ServerApp.Client.Contract
+namespace Aquazania.Integration.ServerApp.Client.MasterParties.Contract
 {
     public class MasterContractLinkedParty : AbsMasterLinkedParty
     {
@@ -30,7 +30,7 @@ namespace Aquazania.Integration.ServerApp.Client.Contract
                 throw ex;
             }
         }
-        public override List<MasterOwnedLinkedContactContract> buildMasterLinkObject(OdbcConnection connection, OdbcTransaction transaction, string _COM_connectionString,string _DTS_connectionString)
+        public override List<MasterOwnedLinkedContactContract> buildMasterLinkObject(OdbcConnection connection, OdbcTransaction transaction, string _COM_connectionString, string _DTS_connectionString)
         {
             List<MasterOwnedLinkedContactContract> contractUpdates = new List<MasterOwnedLinkedContactContract>();
             try

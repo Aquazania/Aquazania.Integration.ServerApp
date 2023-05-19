@@ -1,10 +1,13 @@
-﻿using Aquazania.Integration.ServerApp.Client;
-using Aquazania.Integration.ServerApp.Client.Consumable;
+﻿using Aquazania.Integration.ServerApp.Client.Consumable;
 using Aquazania.Integration.ServerApp.Client.Contact;
 using Aquazania.Integration.ServerApp.Client.Contract;
 using Aquazania.Integration.ServerApp.Client.DeliveryAddress;
+using Aquazania.Integration.ServerApp.Client.Interfaces;
+using Aquazania.Integration.ServerApp.Client.MasterParties;
+using Aquazania.Integration.ServerApp.Client.MasterParties.Contract;
 using Aquazania.Integration.ServerApp.Client.Supplier;
 using Aquazania.Integration.ServerApp.Client.SupplierDeliveryAddress;
+using Aquazania.Integration.ServerApp.Client.UnlinkingContacts;
 using Aquazania.Integration.ServerApp.Client.User;
 using Aquazania.Integration.ServerApp.Client.UserExtension;
 using HTTPServer.Client.Customer;
@@ -82,6 +85,17 @@ namespace HTTPServer.Client
                 new MasterUserLinkedParty()
             };
 
+            List<IMasterUnlinkParty> masterUnlinkParties = new List<IMasterUnlinkParty>()
+            {
+                new UnlinkContactLinkedParty(),
+                new UnlinkContractLinkedParty(),
+                new UnlinkCustomerLinkedParty(),
+                new UnlinkDeliveryAddressLinkedParty(),
+                new UnlinkSupplierLinkedParty(),
+                new UnlinkSupplierDeliveryAddressLinkedParty(),
+                new UnlinkUserLinkedParty()
+            };
+
             UserExtensionContract users = new UserExtensionContract(_darielURLUsers);
             await users.SendMasterParty(_httpClient, _DTS_connectionString);
 
@@ -93,6 +107,11 @@ namespace HTTPServer.Client
             foreach (IMasterLinkedParty linkedParty in masterLinkedParties)
             {
                 await linkedParty.SendMasterLinkedParty(_httpClient, _COM_connectionString, _DTS_connectionString, _darielURLContact);
+            }
+
+            foreach (IMasterUnlinkParty unlinkedParty in masterUnlinkParties)
+            {
+                await unlinkedParty.SendMasterLinkedParty(_httpClient, _COM_connectionString, _DTS_connectionString, _darielURLContact);
             }
 
             isRunning = false;

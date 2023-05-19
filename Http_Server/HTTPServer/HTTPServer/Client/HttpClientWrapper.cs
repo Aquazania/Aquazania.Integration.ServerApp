@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Aquazania.Integration.ServerApp.Client.Interfaces;
+using Newtonsoft.Json;
 using System.Net.Http;
 using System.Text;
 
