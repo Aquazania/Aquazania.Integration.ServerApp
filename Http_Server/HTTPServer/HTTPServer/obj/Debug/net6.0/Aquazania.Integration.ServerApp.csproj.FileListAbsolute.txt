@@ -52,3 +52,9 @@ C:\RESTful_SCC\Aquazania.Integration.ServerApp\Http_Server\HTTPServer\HTTPServer
 C:\RESTful_SCC\Aquazania.Integration.ServerApp\Http_Server\HTTPServer\HTTPServer\obj\Debug\net6.0\Aquazania.Integration.ServerApp.pdb
 C:\RESTful_SCC\Aquazania.Integration.ServerApp\Http_Server\HTTPServer\HTTPServer\obj\Debug\net6.0\Aquazania.Integration.ServerApp.genruntimeconfig.cache
 C:\RESTful_SCC\Aquazania.Integration.ServerApp\Http_Server\HTTPServer\HTTPServer\obj\Debug\net6.0\ref\Aquazania.Integration.ServerApp.dll
+C:\RESTful_SCC\Aquazania.Integration.ServerApp\Http_Server\HTTPServer\HTTPServer\bin\Debug\net6.0\NAudio.dll
+C:\RESTful_SCC\Aquazania.Integration.ServerApp\Http_Server\HTTPServer\HTTPServer\bin\Debug\net6.0\NAudio.Asio.dll
+C:\RESTful_SCC\Aquazania.Integration.ServerApp\Http_Server\HTTPServer\HTTPServer\bin\Debug\net6.0\NAudio.Core.dll
+C:\RESTful_SCC\Aquazania.Integration.ServerApp\Http_Server\HTTPServer\HTTPServer\bin\Debug\net6.0\NAudio.Midi.dll
+C:\RESTful_SCC\Aquazania.Integration.ServerApp\Http_Server\HTTPServer\HTTPServer\bin\Debug\net6.0\NAudio.Wasapi.dll
+C:\RESTful_SCC\Aquazania.Integration.ServerApp\Http_Server\HTTPServer\HTTPServer\bin\Debug\net6.0\NAudio.WinMM.dll

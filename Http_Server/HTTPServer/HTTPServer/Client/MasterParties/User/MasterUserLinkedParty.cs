@@ -52,10 +52,11 @@ namespace Aquazania.Integration.ServerApp.Client.User
                             try
                             {
                                 connectionAcc.Open();
-                                string sqlAcc = "SELECT * " +
+                                string sqlAcc = "SELECT TOP 1 * " +
                                                 "FROM [viewContactDocumentReference] " +
                                                 "WHERE [DocumentReferenceCode] = '" + reader["PartyCode"].ToString() + "'" +
-                                                "  AND [ContactPointTypeID] = 2 ";
+                                                "  AND [ContactPointTypeID] = 2 " +
+                                                "ORDER BY ContactID DESC";
                                 var commandAcc = new OdbcCommand(sqlAcc, connectionAcc);
                                 var readerAcc = commandAcc.ExecuteReader();
                                 string prevAccountNo = null;
