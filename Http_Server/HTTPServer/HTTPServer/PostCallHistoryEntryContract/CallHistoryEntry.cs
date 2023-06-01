@@ -19,7 +19,7 @@ namespace Aquazania.Integration.ServerApp.PostCallHistoryEntryContract
 
             string _DTS_connectionString = configuration.GetConnectionString("DTS_Connection");
             List<string> errors = SanityCheck(callresult, _DTS_connectionString);
-            if (errors.Count() == 0)
+            if (errors.Count == 0)
             {
                 string[] tableInfo = IdentifyPartyForCall(callresult);
                 if (validatePartyForCall(tableInfo, callresult, _DTS_connectionString) != 3)
@@ -36,7 +36,7 @@ namespace Aquazania.Integration.ServerApp.PostCallHistoryEntryContract
         }
         public List<string> SanityCheck(CallHistoryEntryContract callHistory, string _DTS_connectionString)
         {
-            List<string> result = new List<string>();
+            List<string> result = new();
             //Basic Checks
             if (callHistory.IncomingCallNumber?.Equals(null) == false)
             {
@@ -68,69 +68,63 @@ namespace Aquazania.Integration.ServerApp.PostCallHistoryEntryContract
             { result.Add("User Name Cannot Be Null"); }
             else 
             {
-                using (var connection = new OdbcConnection(_DTS_connectionString))
+                using var connection = new OdbcConnection(_DTS_connectionString);
+                try
                 {
-                    try
-                    {
-                        connection.Open();
-                        string sql = "SELECT [User Name] FROM [User] WHERE [User Name] = '" + callHistory.Username + "'";
-                        var command = new OdbcCommand(sql, connection);
-                        var reader = command.ExecuteReader();
-                        if (!reader.HasRows)
-                        { result.Add($"User {callHistory.Username} was not found in the database"); }
-                    }
-                    catch (OdbcException ex)
-                    {
-                        throw ex;
-                    }
+                    connection.Open();
+                    string sql = "SELECT [User Name] FROM [User] WHERE [User Name] = '" + callHistory.Username + "'";
+                    var command = new OdbcCommand(sql, connection);
+                    var reader = command.ExecuteReader();
+                    if (!reader.HasRows)
+                    { result.Add($"User {callHistory.Username} was not found in the database"); }
+                }
+                catch (OdbcException ex)
+                {
+                    throw ex;
                 }
             }
             return result;
         }
         private bool CallDoesntExist(CallHistoryEntryContract callresult, string _DTS_connectionString, string[] tableInfo)
         {
-            using (var connection = new OdbcConnection(_DTS_connectionString))
+            using var connection = new OdbcConnection(_DTS_connectionString);
+            try
             {
-                try
+                connection.Open();
+                string sql = "SELECT * "
+                            + "FROM [Call Result Log] "
+                            + "WHERE [PBX Unique ID] = '" + callresult.SipCallId + "'";
+                var command = new OdbcCommand(sql, connection);
+                var reader = command.ExecuteReader();
+                if (reader.HasRows)
                 {
-                    connection.Open();
-                    string sql = "SELECT * "
-                                + "FROM [Call Result Log] "
-                                + "WHERE [PBX Unique ID] = '" + callresult.CallId + "'";
-                    var command = new OdbcCommand(sql, connection);
-                    var reader = command.ExecuteReader();
-                    if (reader.HasRows)
+                    using var connection1 = new OdbcConnection(_DTS_connectionString);
+                    try
                     {
-                        using (var connection1 = new OdbcConnection(_DTS_connectionString))
-                        {
-                            try
-                            {
-                                connection1.Open();
-                                string sql1 = "UPDATE [Call Result Log] "
-                                           + "	  SET [Source] = '" + callresult.Source + "', "
-                                           + "	  	  [Call Batch Date] = '" + DateTime.Now + "', "
-                                           + "	  	  [Reference Code] = '" + callresult.PartyCode + "', "
-                                           + "	  	  [Reference Type] = 0, "
-                                           + "	  	  [Contact Name] = '" + callresult.ContactFullName + "', "
-                                           + "	  	  [Contact Number] = '" + callresult.IncomingCallNumber + "' "
-                                           + "WHERE [PBX Unique ID] = '" + callresult.CallId + "' ";
-                                var command1 = new OdbcCommand(sql1, connection1);
-                                int rows = command1.ExecuteNonQuery();  
-                            }
-                            catch (Exception ex)
-                            {
-                                throw ex;
-                            }
-                        }
-                        return false;
+                        connection1.Open();
+                        string sql1 = "UPDATE [Call Result Log] "
+                                   + "	  SET [Source] = '" + callresult.Source + "', "
+                                   + "	  	  [Call Batch Date] = '" + DateTime.Now + "', "
+                                   + "	  	  [Reference Code] = '" + callresult.PartyCode + "', "
+                                   + "	  	  [Reference Type] = 0, "
+                                   + "	  	  [Contact Name] = '" + callresult.ContactFullName + "', "
+                                   + "	  	  [Contact Number] = '" + callresult.IncomingCallNumber + "' "
+                                   + "WHERE [PBX Unique ID] = '" + callresult.SipCallId + "' ";
+                        var command1 = new OdbcCommand(sql1, connection1);
+                        int rows = command1.ExecuteNonQuery();
                     }
-                    else
-                        return true;
+                    catch (Exception ex)
+                    {
+                        throw ex;
+                    }
+                    return false;
                 }
-                catch (Exception ex)
-                {
-                    throw ex;
-                }
+                else
+                    return true;
+            }
+            catch (Exception ex)
+            {
+                throw;
             }
         }
         private int DoInsert(CallHistoryEntryContract callresult, string _DTS_connectionString, string[] tableinfo) 
@@ -162,7 +156,8 @@ namespace Aquazania.Integration.ServerApp.PostCallHistoryEntryContract
                                + "							    ,[Action No] "
                                + "							    ,[PBX Unique ID] "
                                + "							    ,[User Name] "
-                               + "							    ,[PBX Extension]) "
+                               + "							    ,[PBX Extension]" 
+                               + "                              ,[Integration Call Id]) "
                                + "SELECT '" + callresult.Source + "', "
                                + "	     '" + DateTime.Now + "', "
                                + "	     '" + callresult.PartyCode + "', "
@@ -176,9 +171,10 @@ namespace Aquazania.Integration.ServerApp.PostCallHistoryEntryContract
                                + "	     29, "
                                + "	     0, "
                                + "	     null,"
-                               + "	     '" + callresult.CallId + "',"
+                               + "	     '" + callresult.SipCallId + "',"
                                + "	     '" + callresult.Username + "', "
-                               + "	     null "
+                               + "	     null, "
+                               + "       '" + callresult.CallId + "'"
                                + "SELECT @CallID = SCOPE_IDENTITY() "
                                + "INSERT INTO [Call Result Log External Reference] ([Call ID] "
                                + "												   ,[Reference Code] "

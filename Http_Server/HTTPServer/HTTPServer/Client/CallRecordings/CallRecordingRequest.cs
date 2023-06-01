@@ -3,8 +3,10 @@ using HTTPServer.Client;
 using NAudio.Wave;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Data.Odbc;
 using System.Diagnostics.Eventing.Reader;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Transactions;
 
@@ -22,17 +24,38 @@ namespace Aquazania.Integration.ServerApp.Client.CallRecordings
                 List<CallRecordingRequestContract> callsToFetch = BuildCallRequestList(connection, transaction);
                 foreach (var call in callsToFetch)
                 {
-                    var response = await _httpClient.SendAsync(call, darielURL);
-                    if (response.IsSuccessStatusCode)
+                    string reasonForFailure = string.Empty;
+                    bool succsessfulDownload = false;
+                    if (IsCallRecordingNeeded(call.SipCallId, connection, transaction))
                     {
-                        string message = await response.Content.ReadAsStringAsync();
-                        CallRecordingContract result = JsonConvert.DeserializeObject<CallRecordingContract>(message);
-                        if (result.Data != null && result.SipCallId != null)
-                            if (ConvertStringToWAV(result, connection, transaction))
-                                UpdateSyncMasterTable(connection, transaction, result);
-                            else
-                                UpdateSyncMasterTableFailure(connection, transaction, result);
+                        var response = await _httpClient.SendAsync(call, darielURL);
+                        if (response.IsSuccessStatusCode)
+                        {
+                            string message = await response.Content.ReadAsStringAsync();
+                            CallRecordingContract result = JsonConvert.DeserializeObject<CallRecordingContract>(message);
+                            if (result.Data != null || result.SipCallId != null)
+                            {
+                                string convertResult = ConvertStringToWAV(result, connection, transaction);
+                                if (convertResult.Equals(string.Empty))
+                                {
+                                    succsessfulDownload = true;
+                                    UpdateSyncMasterTable(connection, transaction, result.SipCallId);
+                                }
+                                else reasonForFailure = convertResult;
+                            }
+                            else reasonForFailure = "Data was empty or no call id";
+                        }
+                        else
+                        {
+                            string message = await response.Content.ReadAsStringAsync();
+                            RecordingErrorResponse error = JsonConvert.DeserializeObject<RecordingErrorResponse>(message);
+                            succsessfulDownload = false;
+                            reasonForFailure = error.Title + " " + error.Detail + " " + error.Type;
+                        }
                     }
+                    else reasonForFailure = "Call Duration Too Short Or Call Not Found";
+                    if (!succsessfulDownload)
+                        UpdateSyncMasterTableFailure(connection, transaction, call.SipCallId, reasonForFailure);
                 }
                 transaction.Commit();
             }
@@ -43,14 +66,45 @@ namespace Aquazania.Integration.ServerApp.Client.CallRecordings
                 throw;
             }
         }
-        public void UpdateSyncMasterTableFailure(OdbcConnection connection, OdbcTransaction transaction, CallRecordingContract result)
+        public bool IsCallRecordingNeeded(string SipCallId, OdbcConnection connection, OdbcTransaction transaction)
+        {
+            try
+            {
+                string sql = "SELECT TOP 1 [Start Time], [End Time] "
+                            + "FROM [Call Result Log] "
+                            + "WHERE [PBX Unique ID] = '" + SipCallId + "' "
+                            + "ORDER BY [Call ID] DESC";
+                var command = new OdbcCommand(sql, connection)
+                {
+                    Transaction = transaction
+                };
+                var reader = command.ExecuteReader();
+                if (reader.HasRows)
+                {
+                    while (reader.Read())
+                    {
+                        DateTime startTime = DateTime.Parse(reader["Start Time"].ToString());
+                        DateTime endTime = DateTime.Parse(reader["End Time"].ToString());
+                        if ((endTime - startTime).TotalSeconds >= 3)
+                            return true;
+                    }
+                }
+                return false;
+            }
+            catch (OdbcException ex)
+            {
+                throw ex;
+            }
+        }
+        public void UpdateSyncMasterTableFailure(OdbcConnection connection, OdbcTransaction transaction, string SipCallId, string ReasonForFailure)
         {
             try
             {
                 string sql = "UPDATE [Temp Call Recording Request] "
-                           + "	SET [Attempted] = 1 "
-                           + "      [Date Attempted] = '" + DateTime.Now + "'"
-                           + "WHERE [Sip Call ID] = " + result.SipCallId;
+                           + "	SET [Attempted] = 1, "
+                           + "      [Date Attempted] = '" + DateTime.Now + "', "
+                           + "      [Failure Reason] = '" + ReasonForFailure + "'"
+                           + "WHERE [Sip Call ID] = '" + SipCallId + "'";
                 var command = new OdbcCommand(sql, connection)
                 {
                     Transaction = transaction
@@ -62,15 +116,15 @@ namespace Aquazania.Integration.ServerApp.Client.CallRecordings
                 throw ex;
             }
         }
-        public void UpdateSyncMasterTable(OdbcConnection connection, OdbcTransaction transaction, CallRecordingContract result)
+        public void UpdateSyncMasterTable(OdbcConnection connection, OdbcTransaction transaction, string SipCallId)
         {
             try
             {
                 string sql = "UPDATE [Temp Call Recording Request] "
-                           + "	SET [Synced] = 1 "
-                           + "      [Attempted] = 1 "
+                           + "	SET [Synced] = 1, "
+                           + "      [Attempted] = 1, "
                            + "      [Date Attempted] = '" + DateTime.Now + "'"
-                           + "WHERE [Sip Call ID] = " + result.SipCallId;
+                           + "WHERE [Sip Call ID] = '" + SipCallId + "'";
                 var command = new OdbcCommand(sql, connection)
                 {
                     Transaction = transaction
@@ -90,8 +144,9 @@ namespace Aquazania.Integration.ServerApp.Client.CallRecordings
                 string sql = "SELECT [Sip Call ID] "
                             + "FROM [Temp Call Recording Request] "
                             + "WHERE [Synced] = 0 AND "
-                            + "	     [Attempted] = 0 "
-                            + "GROUP BY PartyCode ";
+                            + "	     [Attempted] = 0 AND "
+                            + "      DATEDIFF(MINUTE, [Date Recorded], Current_Timestamp) >= 10 "
+                            + "GROUP BY [Sip Call ID] ";
                 var command = new OdbcCommand(sql, connection)
                 {
                     Transaction = transaction
@@ -125,7 +180,7 @@ namespace Aquazania.Integration.ServerApp.Client.CallRecordings
                 throw ex;
             }
         }
-        public bool ConvertStringToWAV(CallRecordingContract response, OdbcConnection connection, OdbcTransaction transaction)
+        public string ConvertStringToWAV(CallRecordingContract response, OdbcConnection connection, OdbcTransaction transaction)
         {
             try
             {
@@ -141,10 +196,10 @@ namespace Aquazania.Integration.ServerApp.Client.CallRecordings
                 if (reader.HasRows)
                     folderPath = reader["Value"].ToString() + @"\";
                 else
-                    return false;
+                    return "No File Location Stored In Default Value";
                 sql = "SELECT [Start Time] "  
                     + "FROM [Call Result Log] " 
-                    + "WHERE [PBX Unique ID] = " + response.SipCallId;
+                    + "WHERE [PBX Unique ID] = '" + response.SipCallId + "'";
                 command = new OdbcCommand(sql, connection)
                 {
                     Transaction = transaction
@@ -152,11 +207,15 @@ namespace Aquazania.Integration.ServerApp.Client.CallRecordings
                 reader = command.ExecuteReader();
                 if (reader.HasRows)
                 {
-                    DateTime startTime = DateTime.Parse(reader["Value"].ToString());
-                    folderPath += startTime.Year + @"\" + startTime.Month.ToString("MMMM");
+                    DateTime startTime = DateTime.Parse(reader["Start Time"].ToString());
+                    folderPath += startTime.Year + @"\" + startTime.ToString("MMMM", CultureInfo.InvariantCulture);
+                    if (!Directory.Exists(folderPath))
+                    {
+                        Directory.CreateDirectory(folderPath);
+                    }
                 }
                 else
-                    return false;
+                    return "Could Not Determine Start Time. No SipID which matches";
                 string fileName = response.SipCallId + ".wav";
                 string filePath = Path.Combine(folderPath, fileName);
                 byte[] wavBytes = Convert.FromBase64String(response.Data);
@@ -164,8 +223,8 @@ namespace Aquazania.Integration.ServerApp.Client.CallRecordings
                 {
                     using FileStream fileStream = new(filePath, FileMode.Create);
                     fileStream.Write(wavBytes, 0, wavBytes.Length);
-                    return true;
-                } return false;
+                    return string.Empty;
+                } return "Failed checks to see if valid WAV file.";
             }
             catch (OdbcException ex)
             {
@@ -185,11 +244,11 @@ namespace Aquazania.Integration.ServerApp.Client.CallRecordings
             if (fileSize != wavBytes.Length)
                 return false;
             // Check the WAV format
-            if (wavBytes[20] != 0x66 || wavBytes[21] != 0x6D || wavBytes[22] != 0x74 || wavBytes[23] != 0x20)
-                return false;
+            //if (wavBytes[20] != 0x66 || wavBytes[21] != 0x6D || wavBytes[22] != 0x74 || wavBytes[23] != 0x20)
+            //    return false;
             // Check the audio format is PCM
-            if (wavBytes[34] != 0x01 || wavBytes[35] != 0x00)
-                return false;
+            //if (wavBytes[34] != 0x01 || wavBytes[35] != 0x00)
+            //    return false;
 
             return true;
         }
