@@ -183,6 +183,10 @@ namespace Aquazania.Integration.ServerApp.PostCallHistoryEntryContract
                                + "	      '" + callresult.PartyCode + "',  "
                                + "	      " + tableinfo[2];
                     var command = new OdbcCommand(sql, connection);
+
+                    if (callresult.DurationInSeconds > 3)
+                        RequestCallRecording(callresult, _DTS_connectionString);
+
                     return command.ExecuteNonQuery();
                 }
                 catch (Exception ex)
@@ -284,6 +288,43 @@ namespace Aquazania.Integration.ServerApp.PostCallHistoryEntryContract
                         else
                             return 3;
                     }
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+            }
+        }
+        private void RequestCallRecording(CallHistoryEntryContract callresult, string _DTS_connectionString)
+        {
+            using (var connection = new OdbcConnection(_DTS_connectionString))
+            {
+                try
+                {
+                    connection.Open();
+                    string sql = "SELECT [Sip Call Id] " +
+                                 "FROM [Temp Call Recording Request] " +
+                                 "WHERE [Sip Call Id] = '" + callresult.SipCallId + "'";
+                    var command = new OdbcCommand(sql, connection);
+                    var reader = command.ExecuteReader();
+                    if (!reader.HasRows)
+                    {
+                        string sqlRequestCall = "INSERT INTO [Temp Call Recording Request]([Sip Call ID] "
+                                              + "									      ,[Attempted] "
+                                              + "									      ,[Synced] "
+                                              + "									      ,[Date Recorded] "
+                                              + "									      ,[Date Attempted] "
+                                              + "									      ,[Failure Reason]) "
+                                              + "SELECT '" + callresult.SipCallId + "', "
+                                              + "	    0, "
+                                              + "		0, "
+                                              + "		CURRENT_TIMESTAMP, "
+                                              + "		NULL, "
+                                              + "		NULL ";
+                        var commandRequestCall = new OdbcCommand(sqlRequestCall, connection);
+                        _ = commandRequestCall.ExecuteNonQuery();
+                    }
+
                 }
                 catch (Exception ex)
                 {
