@@ -1,5 +1,4 @@
-﻿using Aquazania.Integration.ServerApp.Client.CallRecordings;
-using Aquazania.Integration.ServerApp.Client.Consumable;
+﻿using Aquazania.Integration.ServerApp.Client.Consumable;
 using Aquazania.Integration.ServerApp.Client.Contact;
 using Aquazania.Integration.ServerApp.Client.Contract;
 using Aquazania.Integration.ServerApp.Client.DeliveryAddress;
@@ -23,7 +22,6 @@ namespace HTTPServer.Client
         private readonly ITimed_Client _httpClient;
         private string _DTS_connectionString;
         private string _COM_connectionString;
-        private string _darielCallRecordingURL;
         private string _darielURL;
         private string _darielURLContact;
         private string _darielURLUsers;
@@ -41,7 +39,6 @@ namespace HTTPServer.Client
             _darielURL = configuration.GetSection("darielURL").Value;
             _darielURLContact = configuration.GetSection("darielURLContact").Value;
             _darielURLUsers = configuration.GetSection("darielUsers").Value; 
-            _darielCallRecordingURL = configuration.GetSection("darielCallRecording").Value;
         }
         public void StartTimer()
         {
@@ -116,9 +113,6 @@ namespace HTTPServer.Client
 
             UserExtensionContract users = new UserExtensionContract(_darielURLUsers);
             await users.SendMasterParty(_httpClient, _DTS_connectionString);
-
-            CallRecordingRequest callRecording = new();
-            await callRecording.SendCallRequest(_httpClient, _DTS_connectionString ,_darielCallRecordingURL);
 
             isRunning = false;
         }
